@@ -1,0 +1,34 @@
+{
+    "ConnectionMongoDB": [
+        "mongodb+srv://ericpatrick:9858epJusd@cluster0.cieqi.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+    ],
+    "FileLog": [
+        "IndiceTx.txt",
+        "IndiceBlock.txt"
+    ],
+    "DataBase": [
+        "blockchain"
+    ],
+    "Collection": [
+        "LatestBlock",
+        "teste",
+        "testeMultiAdress",
+        "Cluster",
+        "Txs"
+    ],
+    "UrlAPI": [
+        "https://blockchain.info"
+    ],
+    "RawBlock": "/rawblock/",
+    "RawTx": "/rawtx/",
+    "MultiAddr": "/multiaddr?active=",
+    "RawAddr": "/rawaddr/",
+    "BlockHeight":"/block-height/",
+    "FormatJson": "?format=json",
+    "Charts":"/charts/",
+    "Unspent":"/unspent?active=",
+    "Balance": "/balance?active=",
+    "LatestBlock":"/latestblock",
+    "Unconfirmedtransactions":"/unconfirmed-transactions",
+    "Blocks":"/blocks/"
+}
