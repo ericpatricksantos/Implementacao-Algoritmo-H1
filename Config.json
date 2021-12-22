@@ -11,8 +11,8 @@
     ],
     "Collection": [
         "LatestBlock",
-        "teste",
-        "testeMultiAdress",
+        "testeTxs",
+        "testeCluster",
         "Cluster",
         "Txs"
     ],

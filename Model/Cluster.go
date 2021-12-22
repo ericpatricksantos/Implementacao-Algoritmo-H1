@@ -1,6 +1,7 @@
 package Model
 
 type Cluster struct {
-	Address string   `json:"Address"`
-	Input   []string `json:"Input"`
+	Id    string   `json:"id" bson:"_id"`
+	Hash  string   `json:"Hash"`
+	Input []string `json:"Input"`
 }
