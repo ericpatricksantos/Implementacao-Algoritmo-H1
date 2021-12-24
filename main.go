@@ -25,7 +25,7 @@ var FileLogHash string = Controller.GetConfig().FileLog[0]
 var FileLogBlock string = Controller.GetConfig().FileLog[1]
 
 func main() {
-	// // Salva o ultimo Bloco gerado na Blockchain na Collection LatestBlock
+	// Salva o ultimo Bloco gerado na Blockchain na Collection LatestBlock
 	Controller.SaveLatestBlock(UrlAPI, LatestBlock, ConnectionMongoDB, DataBase, CollectionLatestBlock)
 
 	// Busca todos os Blocos que foram salvos na Collection LatestBlock
@@ -34,20 +34,27 @@ func main() {
 
 	//Salva todas as Transações dos blocos na Collection Txs
 	for contador := indiceInicial; contador < len(allblock); contador++ {
-		Controller.SaveTxs(allblock[contador].TxIndexes, UrlAPI, RawTx, ConnectionMongoDB, DataBase, CollectionTxs, FileLogHash)
 
-		fmt.Println("Salvo todas as transações do Block")
+		confirm := Controller.SaveTxs(allblock[contador].TxIndexes, UrlAPI, RawTx, ConnectionMongoDB, DataBase, CollectionTxs, FileLogHash)
 
-		temp := []string{strconv.Itoa(contador)}
-		Function.EscreverTexto(temp, FileLogBlock)
+		if confirm {
+			fmt.Println("Todas as transações do Block foram salvas no MongoDb")
 
-		fmt.Println("Indice do Bloco Atualizado")
+			temp := []string{strconv.Itoa(contador)}
+			Function.EscreverTexto(temp, FileLogBlock)
+
+			fmt.Println("Indice do Bloco Atualizado")
+		} else {
+			fmt.Println("Não foram salvas todas as transações no MongoDb")
+			break
+		}
+
 	}
 
 	//Recuperando as Transações da Collection Txs e cria Cluster
 	Controller.CreateCluster(ConnectionMongoDB, DataBase, CollectionTxs, CollectionCluster)
 
-	//Reorganiza os Cluster utilizando o algoritmo H1
-	Controller.H1(ConnectionMongoDB, DataBase, CollectionTesteCluster)
+	////Reorganiza os Cluster utilizando o algoritmo H1
+	Controller.H1(ConnectionMongoDB, DataBase, CollectionCluster)
 
 }

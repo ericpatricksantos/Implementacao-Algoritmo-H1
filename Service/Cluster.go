@@ -23,7 +23,7 @@ func H1(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados 
 					fmt.Println("Não foram deletados todos os clusters")
 				}
 
-				clusterResultante := UnionCluster(result)
+				clusterResultante, _ := Function.RemoveDuplicados(UnionCluster(result))
 
 				SaveConfirm := Function.PutListCluster(item.Hash, clusterResultante, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
 
@@ -68,14 +68,14 @@ func CreateCluster(ConnectionMongoDB string, DataBaseMongo string, CollectionRec
 
 	for i := 0; i < len(Txs); i++ {
 		var Cluster Model.Cluster
-
+		var inputs []string
 		Cluster.Hash = Txs[i].Hash
 		for j := 0; j < len(Txs[i].Inputs); j++ {
 			if len(Txs[i].Inputs[j].Prev_out.Addr) > 0 {
-				Cluster.Input = append(Cluster.Input, Txs[i].Inputs[j].Prev_out.Addr)
+				inputs = append(inputs, Txs[i].Inputs[j].Prev_out.Addr)
 			}
 		}
-
+		Cluster.Input, _ = Function.RemoveDuplicados(inputs)
 		confirm := Function.SaveCluster(Cluster, ConnectionMongoDB, DataBaseMongo, CollectionSalvaDados)
 
 		if confirm {
