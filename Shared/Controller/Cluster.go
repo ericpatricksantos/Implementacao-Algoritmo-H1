@@ -1,6 +1,8 @@
 package Controller
 
-import "main/Service"
+import (
+	"main/Shared/Service"
+)
 
 func CreateCluster(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string,
 	CollectionSalvaDados string) {

@@ -1,10 +1,10 @@
 package Controller
 
 import (
-	"main/Config"
-	"main/Function"
-	"main/Model"
-	"main/Service"
+	"main/Shared/Config"
+	"main/Shared/Function"
+	"main/Shared/Model"
+	"main/Shared/Service"
 )
 
 func GetConfig() Model.Configuration {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"main/Model"
+	"main/Shared/Model"
 	"net/http"
 	"strings"
 )

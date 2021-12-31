@@ -3,7 +3,7 @@ package Config
 import (
 	"encoding/json"
 	"fmt"
-	"main/Model"
+	"main/Shared/Model"
 	"os"
 )
 

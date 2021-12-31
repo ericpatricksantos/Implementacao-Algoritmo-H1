@@ -2,18 +2,43 @@ package Function
 
 import (
 	"log"
-	"main/Database"
-	"main/Model"
+	"main/Shared/Database"
+	"main/Shared/Model"
 
 	"gopkg.in/mgo.v2/bson"
 )
 
-/*
-	Esse arquivo foi criado para armazenar todas as funções que são utilizadas frequentemente.
+func SaveTx(Tx Model.Transaction, ConnectionMongoDB string, DataBaseMongo string, Collection string) bool {
+	if len(Tx.Inputs) > 0 {
+		cliente, contexto, cancel, errou := Database.Connect(ConnectionMongoDB)
+		if errou != nil {
+			log.Fatal(errou)
+		}
 
-*/
+		Database.Ping(cliente, contexto)
+		defer Database.Close(cliente, contexto, cancel)
 
-func GetAllLatestBlock(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string) (blocks []Model.LatestBlock) {
+		Database.ToDoc(Tx)
+
+		result, err := Database.InsertOne(cliente, contexto, DataBaseMongo, Collection, Tx)
+
+		// handle the error
+		if err != nil {
+			panic(err)
+		}
+
+		if result.InsertedID != nil {
+			return true
+		} else {
+			return false
+		}
+
+	} else {
+		return false
+	}
+}
+
+func GetAllTxs(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string) (Txs []Model.Transaction) {
 
 	// Get Client, Context, CalcelFunc and err from connect method.
 	client, ctx, cancel, err := Database.Connect(ConnectionMongoDB)
@@ -49,42 +74,15 @@ func GetAllLatestBlock(ConnectionMongoDB string, DataBaseMongo string, Collectio
 	defer cursor.Close(ctx)
 
 	for cursor.Next(ctx) {
-		var bloco Model.LatestBlock
+		var tx Model.Transaction
 
-		if err := cursor.Decode(&bloco); err != nil {
+		if err := cursor.Decode(&tx); err != nil {
 			log.Fatal(err)
 		}
 
-		blocks = append(blocks, bloco)
+		Txs = append(Txs, tx)
 
 	}
 
-	return blocks
-}
-
-func SaveLatestBlock(latestBlock Model.LatestBlock,
-	ConnectionMongoDB string, DataBaseMongo string, Collection string) bool {
-	if len(latestBlock.TxIndexes) > 0 {
-		cliente, contexto, cancel, errou := Database.Connect(ConnectionMongoDB)
-		if errou != nil {
-			log.Fatal(errou)
-		}
-
-		Database.Ping(cliente, contexto)
-		defer Database.Close(cliente, contexto, cancel)
-
-		Database.ToDoc(latestBlock)
-
-		_, err := Database.InsertOne(cliente, contexto, DataBaseMongo, Collection, latestBlock)
-
-		// handle the error
-		if err != nil {
-			panic(err)
-		} else {
-			return true
-		}
-
-	} else {
-		return false
-	}
+	return Txs
 }

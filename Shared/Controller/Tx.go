@@ -2,25 +2,33 @@ package Controller
 
 import (
 	"fmt"
-	"main/API"
-	"main/Function"
-	"main/Model"
+	"main/Shared/API"
+	"main/Shared/Function"
+	"main/Shared/Model"
 	"strconv"
 )
 
 // Salva todas as transações de um Block no MongoDB
-func SaveTxs(Txs []int, urlAPI string, rawTx string, ConnectionMongoDB string, DataBaseMongo string, Collection string, FileLogHash string) bool {
-	indiceInicial := Function.GetIndiceLogIndice(FileLogHash)
+func SaveTxs(Txs []int, urlAPI string, rawTx string, ConnectionMongoDB string, DataBaseMongo string, Collection string, FileLogHash string, indiceInicial int) bool {
+	//indiceInicial := Function.GetIndiceLogIndice(FileLogHash) + 1
 	for contador := indiceInicial; contador < len(Txs); contador++ {
 		confirm := SaveTx(strconv.Itoa(Txs[contador]), urlAPI, rawTx, ConnectionMongoDB, DataBaseMongo, Collection)
 		if !confirm {
 			fmt.Println("Não foi salvo a transação ", Txs[contador])
 			return false
+		} else {
+			fmt.Println("Salvo a Transação: Nº ", Txs[contador])
+			fmt.Println("Indice Atualizado para ", contador)
+			temp := []string{strconv.Itoa(contador)}
+			Function.EscreverTexto(temp, FileLogHash)
+			return true
 		}
-		fmt.Println("Salvo a Transação")
-		temp := []string{strconv.Itoa(contador)}
-		Function.EscreverTexto(temp, FileLogHash)
-		fmt.Println("Indice Atualizado")
+		//fmt.Println("Salvo a Transação: Nº ", Txs[contador])
+		//temp := []string{strconv.Itoa(contador)}
+		//Function.EscreverTexto(temp, FileLogHash)
+		//fmt.Println("Indice Atualizado para ", contador)
+		//
+		//time.Sleep(time.Minute * time.Duration(tempo))
 	}
 
 	return true
@@ -32,7 +40,7 @@ func SaveTx(hash string, urlAPI string, rawTx string, ConnectionMongoDB string, 
 	if len(tx.Hash) > 0 {
 		resposta := Function.SaveTx(tx, ConnectionMongoDB, DataBaseMongo, Collection)
 		if resposta {
-			fmt.Println("Transacao Salva com Sucesso")
+			return true
 		} else {
 			return false
 		}

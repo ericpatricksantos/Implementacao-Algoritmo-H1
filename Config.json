@@ -1,20 +1,20 @@
 {
     "ConnectionMongoDB": [
-        "string code"
+       "string connection"
     ],
     "FileLog": [
-        "IndiceTx.txt",
-        "IndiceBlock.txt"
+        "..\\Tcc\\IndiceTx.txt",
+        "..\\Tcc\\IndiceBlock.txt"
     ],
     "DataBase": [
-        "blockchain"
-    ],
-    "Collection": [
-        "LatestBlock",
-        "testeTxs",
-        "testeCluster",
+        "AnalyzedElement",
         "Cluster",
         "Txs"
+    ],
+    "Collection": [
+        "awaitingProcessing",
+        "processing",
+        "processed"
     ],
     "UrlAPI": [
         "https://blockchain.info"

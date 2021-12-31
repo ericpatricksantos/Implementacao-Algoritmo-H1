@@ -2,8 +2,8 @@ package Service
 
 import (
 	"fmt"
-	"main/Function"
-	"main/Model"
+	Function2 "main/Shared/Function"
+	"main/Shared/Model"
 )
 
 /*
@@ -11,21 +11,21 @@ import (
 */
 
 func H1(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string) {
-	clusters := Function.GetAllCluster(ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
+	clusters := Function2.GetAllCluster(ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
 	for _, item := range clusters {
 		for _, item2 := range item.Input {
 			resultSearch := SearchAddr(item2, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
 			if len(resultSearch) > 1 {
-				result := Function.RemoveCluster(item.Hash, resultSearch)
+				result := Function2.RemoveCluster(item.Hash, resultSearch)
 				DeleteConfirm := DeleteListCluster(result, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
 
 				if !DeleteConfirm {
 					fmt.Println("Não foram deletados todos os clusters")
 				}
 
-				clusterResultante, _ := Function.RemoveDuplicados(UnionCluster(result))
+				clusterResultante, _ := Function2.RemoveDuplicados(UnionCluster(result))
 
-				SaveConfirm := Function.PutListCluster(item.Hash, clusterResultante, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
+				SaveConfirm := Function2.PutListCluster(item.Hash, clusterResultante, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
 
 				if SaveConfirm {
 					fmt.Println("Cluster Resultante Atualizado")
@@ -42,18 +42,18 @@ func UnionCluster(clusters []Model.Cluster) (result []string) {
 		result = append(result, item.Input...)
 	}
 
-	result, _ = Function.RemoveDuplicados(result)
+	result, _ = Function2.RemoveDuplicados(result)
 
 	return result
 }
 
 func SearchAddr(addr string, ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string) []Model.Cluster {
-	return Function.SearchAddr(addr, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
+	return Function2.SearchAddr(addr, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
 }
 
 func DeleteListCluster(clusters []Model.Cluster, ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string) bool {
 	for _, item := range clusters {
-		confirm := Function.DeleteCluster(item.Hash, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
+		confirm := Function2.DeleteCluster(item.Hash, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
 
 		if !confirm {
 			return false
@@ -64,7 +64,7 @@ func DeleteListCluster(clusters []Model.Cluster, ConnectionMongoDB string, DataB
 
 func CreateCluster(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string,
 	CollectionSalvaDados string) {
-	Txs := Function.GetAllTxs(ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
+	Txs := Function2.GetAllTxs(ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
 
 	for i := 0; i < len(Txs); i++ {
 		var Cluster Model.Cluster
@@ -75,8 +75,8 @@ func CreateCluster(ConnectionMongoDB string, DataBaseMongo string, CollectionRec
 				inputs = append(inputs, Txs[i].Inputs[j].Prev_out.Addr)
 			}
 		}
-		Cluster.Input, _ = Function.RemoveDuplicados(inputs)
-		confirm := Function.SaveCluster(Cluster, ConnectionMongoDB, DataBaseMongo, CollectionSalvaDados)
+		Cluster.Input, _ = Function2.RemoveDuplicados(inputs)
+		confirm := Function2.SaveCluster(Cluster, ConnectionMongoDB, DataBaseMongo, CollectionSalvaDados)
 
 		if confirm {
 			fmt.Println("Salvo com Sucesso")
