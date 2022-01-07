@@ -3,6 +3,7 @@ package Controller
 import (
 	"fmt"
 	"main/Shared/API"
+	"main/Shared/Database"
 	"main/Shared/Function"
 	"main/Shared/Model"
 	"strconv"
@@ -36,6 +37,20 @@ func SaveTxs(Txs []int, urlAPI string, rawTx string, ConnectionMongoDB string, D
 
 // Salva as Transações no MongoDb
 func SaveTx(hash string, urlAPI string, rawTx string, ConnectionMongoDB string, DataBaseMongo string, Collection string) bool {
+	// verifica se a transacao existe
+	client, ctx, cancel, err := Database.Connect(ConnectionMongoDB)
+	if err != nil {
+		panic(err)
+	}
+
+	defer Database.Close(client, ctx, cancel)
+
+	txIndex, _ := strconv.Atoi(hash)
+	count, _ := Database.CountElementoTxIndex(client, ctx, DataBaseMongo, Collection, "tx_index", txIndex)
+
+	if count > 0 {
+		return false
+	}
 	tx := GetTx(hash, urlAPI, rawTx)
 	if len(tx.Hash) > 0 {
 		resposta := Function.SaveTx(tx, ConnectionMongoDB, DataBaseMongo, Collection)

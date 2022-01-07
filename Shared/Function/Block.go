@@ -62,6 +62,68 @@ func GetAllLatestBlock(ConnectionMongoDB string, DataBaseMongo string, Collectio
 	return blocks
 }
 
+func GetBlock(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string) (block Model.LatestBlock) {
+
+	// Get Client, Context, CalcelFunc and err from connect method.
+	client, ctx, cancel, err := Database.Connect(ConnectionMongoDB)
+	if err != nil {
+		panic(err)
+	}
+
+	// Free the resource when mainn dunction is  returned
+	defer Database.Close(client, ctx, cancel)
+
+	// create a filter an option of type interface,
+	// that stores bjson objects.
+	var filter, option interface{}
+
+	// filter  gets all document,
+	// with maths field greater that 70
+	filter = bson.M{}
+
+	//  option remove id field from all documents
+	option = bson.M{}
+
+	// call the query method with client, context,
+	// database name, collection  name, filter and option
+	// This method returns momngo.cursor and error if any.
+	cursor, err := Database.Query(client, ctx, DataBaseMongo,
+		CollectionRecuperaDados, filter, option)
+	// handle the errors.
+	if err != nil {
+		panic(err)
+	}
+
+	// le os documentos em partes, testei com 1000 documentos e deu certo
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		if err := cursor.Decode(&block); err != nil {
+			log.Fatal(err)
+		}
+		return block
+	}
+
+	return block
+}
+
+func CheckBlock(ConnectionMongoDB, dataBase, col, key, code string) bool {
+	// Get Client, Context, CalcelFunc and err from connect method.
+	client, ctx, cancel, err := Database.Connect(ConnectionMongoDB)
+	if err != nil {
+		panic(err)
+	}
+
+	// Free the resource when mainn dunction is  returned
+	defer Database.Close(client, ctx, cancel)
+	count, _ := Database.CountElemento(client, ctx, dataBase, col, key, code)
+	if count > 0 {
+		return true
+	} else {
+		return false
+	}
+}
+
 func SaveLatestBlock(latestBlock Model.LatestBlock,
 	ConnectionMongoDB string, DataBaseMongo string, Collection string) bool {
 	if len(latestBlock.TxIndexes) > 0 {

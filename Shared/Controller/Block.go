@@ -11,11 +11,21 @@ func GetAllLatestBlock(ConnectionMongoDB string, DataBaseMongo string, Collectio
 	return Function.GetAllLatestBlock(ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
 }
 
-func SaveLatestBlock(UrlAPI string, LatestBlock string, ConnectionMongoDB string, DataBaseMongo string, Collection string) {
+func SaveLatestBlock(UrlAPI string, LatestBlock string, ConnectionMongoDB string, DataBaseMongo string, Collection string) bool {
 	ultimoBloco := GetLatestBlock(UrlAPI, LatestBlock)
-	resposta := Function.SaveLatestBlock(ultimoBloco, ConnectionMongoDB, DataBaseMongo, Collection)
-	if resposta {
-		fmt.Println("Ultimo Bloco Salvo com Sucesso")
+	conf := Function.CheckBlock(ConnectionMongoDB, DataBaseMongo, Collection, "hash", ultimoBloco.Hash)
+	if conf {
+		fmt.Println("Esse bloco foi salvo anteriormente")
+		return false
+	} else {
+		resposta := Function.SaveLatestBlock(ultimoBloco, ConnectionMongoDB, DataBaseMongo, Collection)
+		if resposta {
+			fmt.Println("Ultimo Bloco Salvo com Sucesso")
+			return true
+		} else {
+			return false
+		}
+
 	}
 }
 
@@ -29,4 +39,8 @@ func GetLatestBlock(UrlAPI string, LatestBlock string) Model.LatestBlock {
 
 func DeleteLatestBlock(hash string, ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string) bool {
 	return Function.DeleteLatestBlock(hash, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
+}
+
+func GetBlock(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string) (block Model.LatestBlock) {
+	return Function.GetBlock(ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
 }

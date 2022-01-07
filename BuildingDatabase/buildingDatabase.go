@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"main/Shared/Controller"
+	"strconv"
 	"time"
 )
 
@@ -12,11 +13,16 @@ var LatestBlock string = Controller.GetConfig().LatestBlock
 func main() {
 	ConnectionMongoDB := "mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb"
 	for {
+		tempo := 10
 		// Salva o ultimo Bloco gerado na Blockchain na Collection LatestBlock
-		Controller.SaveLatestBlock(UrlAPI, LatestBlock, ConnectionMongoDB,
+		conf := Controller.SaveLatestBlock(UrlAPI, LatestBlock, ConnectionMongoDB,
 			"AnalyzedElement", "awaitingProcessing")
-
-		fmt.Println("Dormindo por 30 minutos")
-		time.Sleep(time.Minute * 30)
+		if !conf {
+			tempo = tempo + 5
+		} else {
+			tempo = 15
+		}
+		fmt.Println("Dormindo por " + strconv.Itoa(tempo) + " minutos")
+		time.Sleep(time.Minute * time.Duration(tempo))
 	}
 }

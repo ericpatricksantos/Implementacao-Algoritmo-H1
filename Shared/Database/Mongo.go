@@ -123,7 +123,7 @@ Busca a ocorrencia de um elemente atráves de uma chave e um valor
 		 1 ocorrencia do documento
 		 2 ocorrencias do documento
 */
-func CountElemento(client *mongo.Client, ctx context.Context, dataBase, col string, key string, code string) (Count int64, err error) {
+func CountElemento(client *mongo.Client, ctx context.Context, dataBase string, col string, key string, code string) (Count int64, err error) {
 
 	// select database and collection.
 	collection := client.Database(dataBase).Collection(col)
@@ -131,7 +131,7 @@ func CountElemento(client *mongo.Client, ctx context.Context, dataBase, col stri
 	var filter bson.M
 
 	if key == "_id" {
-		objectId, _ := primitive.ObjectIDFromHex(code)
+		objectId, _ := primitive.ObjectIDFromHex("code")
 		filter = bson.M{
 			key: objectId,
 		}
@@ -151,7 +151,46 @@ func CountElemento(client *mongo.Client, ctx context.Context, dataBase, col stri
 
 		opts := options.Count().SetMaxTime(2 * time.Second)
 		Count, err = collection.CountDocuments(
+			ctx,
+			filter,
+			opts)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	return Count, err
+}
+
+func CountElementoTxIndex(client *mongo.Client, ctx context.Context, dataBase, col string, key string, code int) (Count int64, err error) {
+
+	// select database and collection.
+	collection := client.Database(dataBase).Collection(col)
+
+	var filter bson.M
+
+	if key == "_id" {
+		objectId, _ := primitive.ObjectIDFromHex("code")
+		filter = bson.M{
+			key: objectId,
+		}
+		opts := options.Count().SetMaxTime(2 * time.Second)
+		Count, err = collection.CountDocuments(
 			context.TODO(),
+			filter,
+			opts)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+	} else {
+		filter = bson.M{
+			key: code,
+		}
+
+		opts := options.Count().SetMaxTime(2 * time.Second)
+		Count, err = collection.CountDocuments(
+			ctx,
 			filter,
 			opts)
 		if err != nil {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"main/Shared/Controller"
 	"main/Shared/Function"
+	"strconv"
 	"time"
 )
 
@@ -14,10 +15,14 @@ var FileLogHash string = Controller.GetConfig().FileLog[0]
 var FileLogBlock string = Controller.GetConfig().FileLog[1]
 
 func main() {
-	tempo := 2
+	tempo := 1
 
 	ConnectionMongoDB := "mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb"
+	confirmContinue := false
 	for {
+		if confirmContinue {
+			break
+		}
 		// Busca todos os Blocos que foram salvos na Collection LatestBlock
 		allblock := Controller.GetAllLatestBlock(ConnectionMongoDB,
 			"AnalyzedElement", "processing")
@@ -26,18 +31,27 @@ func main() {
 		indiceInicial := 0
 		indice := Function.GetIndiceLogIndice(FileLogHash) + 1
 
-		if indice > len(allblock[indiceInicial].TxIndexes) {
+		if indice >= len(allblock[indiceInicial].TxIndexes) {
 			fmt.Println("Todos os endereços foram salvos")
 
-			//Controller.SaveBlock(allblock[contador], ConnectionMongoDB,
-			//	"AnalyzedElement", "processed")
-			//
-			//Controller.DeleteLatestBlock(allblock[contador].Hash, ConnectionMongoDB,
-			//	"AnalyzedElement", "processing")
+			Controller.SaveBlock(allblock[indiceInicial], ConnectionMongoDB,
+				"AnalyzedElement", "processed")
 
-			//temp := []string{strconv.Itoa(contador)}
-			//Function.EscreverTexto(temp, FileLogBlock)
-			//fmt.Println("Indice do Bloco Atualizado")
+			Controller.DeleteLatestBlock(allblock[indiceInicial].Hash, ConnectionMongoDB,
+				"AnalyzedElement", "processing")
+
+			block := Controller.GetBlock(ConnectionMongoDB, "AnalyzedElement", "awaitingProcessing")
+
+			Controller.SaveBlock(block, ConnectionMongoDB,
+				"AnalyzedElement", "processing")
+
+			Controller.DeleteLatestBlock(block.Hash, ConnectionMongoDB,
+				"AnalyzedElement", "awaitingProcessing")
+
+			temp := []string{strconv.Itoa(0)}
+			Function.EscreverTexto(temp, FileLogHash)
+			fmt.Println("Indice do Tx Atualizado para 0")
+
 		}
 
 		//Salva todas as Transações dos blocos na Collection Txs
@@ -51,13 +65,14 @@ func main() {
 				break
 			} else {
 				fmt.Println("Não foi salva a transação no MongoDb")
+				confirmContinue = true
 				break
 			}
 
 		}
 
-		fmt.Println("Dormindo por ", tempo, "minutos")
-		time.Sleep(time.Minute * time.Duration(tempo))
+		fmt.Println("Dormindo por ", tempo, "segundos")
+		time.Sleep(time.Second * time.Duration(tempo))
 	}
 
 }
