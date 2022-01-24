@@ -7,13 +7,17 @@ import (
 	"strconv"
 )
 
-// Funcao que le o conteudo do arquivo e retorna um slice the string com todas as linhas do arquivo
+// LerTexto Funcao que le o conteudo do arquivo e retorna um slice the string com todas as linhas do arquivo
 func LerTexto(caminhoDoArquivo string) ([]string, error) {
 	// Abre o arquivo
 	arquivo, err := os.Open(caminhoDoArquivo)
 	// Caso tenha encontrado algum erro ao tentar abrir o arquivo retorne o erro encontrado
 	if err != nil {
-		return nil, err
+		fmt.Println()
+		fmt.Println("Erro na resposta da função Open  que esta sendo chamada na Função LerTexto - {Function/File.go}")
+		fmt.Println()
+
+		panic(err)
 	}
 	// Garante que o arquivo sera fechado apos o uso
 	defer arquivo.Close()
@@ -29,13 +33,18 @@ func LerTexto(caminhoDoArquivo string) ([]string, error) {
 	return linhas, scanner.Err()
 }
 
-// Funcao que escreve um texto no arquivo e retorna um erro caso tenha algum problema
+// EscreverTexto Funcao que escreve um texto no arquivo e retorna um erro caso tenha algum problema
 func EscreverTexto(linhas []string, caminhoDoArquivo string) error {
 	// Cria o arquivo de texto
 	arquivo, err := os.Create(caminhoDoArquivo)
 	// Caso tenha encontrado algum erro retornar ele
 	if err != nil {
-		return err
+
+		fmt.Println()
+		fmt.Println("Erro na resposta da função Create  que esta sendo chamada na Função EscreverTexto - {Function/File.go}")
+		fmt.Println()
+
+		panic(err)
 	}
 	// Garante que o arquivo sera fechado apos o uso
 	defer arquivo.Close()
@@ -54,14 +63,22 @@ func EscreverTextoSemApagar(linhas []string, caminhoDoArquivo string) error {
 	valoresAntigos, er := LerTexto(caminhoDoArquivo)
 
 	if er != nil {
-		return er
+		fmt.Println()
+		fmt.Println("Erro na resposta da função LerTexto  que esta sendo chamada na Função EscreverTextoSemApagar - {Function/File.go}")
+		fmt.Println()
+
+		panic(er)
 	}
 	valoresAtual := append(valoresAntigos, linhas...)
 	// Cria o arquivo de texto
 	arquivo, err := os.Create(caminhoDoArquivo)
 	// Caso tenha encontrado algum erro retornar ele
 	if err != nil {
-		return err
+		fmt.Println()
+		fmt.Println("Erro na resposta da função Create  que esta sendo chamada na Função EscreverTextoSemApagar - {Function/File.go}")
+		fmt.Println()
+
+		panic(err)
 	}
 	// Garante que o arquivo sera fechado apos o uso
 	defer arquivo.Close()
@@ -81,14 +98,20 @@ func GetIndiceLogIndice(nomeArquivoIndice string) int {
 	indiceInicial := 0
 	if len(valorLogIndice) > 0 {
 		if err != nil {
-			fmt.Print(err.Error())
-			fmt.Println("Erro na função GetIndiceLogIndice na leitura do arquivo")
+			fmt.Println()
+			fmt.Println("Erro na resposta da função LerTexto  que esta sendo chamada na Função GetIndiceLogIndice - {Function/File.go}")
+			fmt.Println()
+
+			panic(err)
 		}
 		var er error
 		indiceInicial, er = strconv.Atoi(valorLogIndice[0])
 		if er != nil {
-			fmt.Print(er.Error())
-			fmt.Println("Erro na função GetIndiceLogIndice na conversão de string para int")
+			fmt.Println()
+			fmt.Println("Erro na resposta da função Atoi  que esta sendo chamada na Função GetIndiceLogIndice - {Function/File.go}")
+			fmt.Println()
+
+			panic(err)
 		}
 
 	}

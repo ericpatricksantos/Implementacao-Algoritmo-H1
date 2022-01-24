@@ -1,6 +1,7 @@
 package Function
 
 import (
+	"fmt"
 	"log"
 	"main/Shared/Database"
 	"main/Shared/Model"
@@ -18,6 +19,9 @@ func GetAllLatestBlock(ConnectionMongoDB string, DataBaseMongo string, Collectio
 	// Get Client, Context, CalcelFunc and err from connect method.
 	client, ctx, cancel, err := Database.Connect(ConnectionMongoDB)
 	if err != nil {
+		fmt.Println()
+		fmt.Println("Erro na resposta da função Connect - {Database/Mongo.go}  que esta sendo chamada na Função GetAllLatestBlock - {Function/Block.go}")
+		fmt.Println()
 		panic(err)
 	}
 
@@ -42,6 +46,9 @@ func GetAllLatestBlock(ConnectionMongoDB string, DataBaseMongo string, Collectio
 		CollectionRecuperaDados, filter, option)
 	// handle the errors.
 	if err != nil {
+		fmt.Println()
+		fmt.Println("Erro na resposta da função Query - {Database/Mongo.go}  que esta sendo chamada na Função GetAllLatestBlock - {Function/Block.go}")
+		fmt.Println()
 		panic(err)
 	}
 
@@ -52,6 +59,9 @@ func GetAllLatestBlock(ConnectionMongoDB string, DataBaseMongo string, Collectio
 		var bloco Model.LatestBlock
 
 		if err := cursor.Decode(&bloco); err != nil {
+			fmt.Println()
+			fmt.Println("Erro na resposta da função Decode que esta sendo chamada na Função GetAllLatestBlock - {Function/Block.go}")
+			fmt.Println()
 			log.Fatal(err)
 		}
 
@@ -67,6 +77,9 @@ func GetBlock(ConnectionMongoDB string, DataBaseMongo string, CollectionRecupera
 	// Get Client, Context, CalcelFunc and err from connect method.
 	client, ctx, cancel, err := Database.Connect(ConnectionMongoDB)
 	if err != nil {
+		fmt.Println()
+		fmt.Println("Erro na resposta da função Connect - {Database/Mongo.go} que esta sendo chamada na Função GetBlock - {Function/Block.go}")
+		fmt.Println()
 		panic(err)
 	}
 
@@ -91,6 +104,9 @@ func GetBlock(ConnectionMongoDB string, DataBaseMongo string, CollectionRecupera
 		CollectionRecuperaDados, filter, option)
 	// handle the errors.
 	if err != nil {
+		fmt.Println()
+		fmt.Println("Erro na resposta da função Query - {Database/Mongo.go} que esta sendo chamada na Função GetBlock - {Function/Block.go}")
+		fmt.Println()
 		panic(err)
 	}
 
@@ -99,6 +115,9 @@ func GetBlock(ConnectionMongoDB string, DataBaseMongo string, CollectionRecupera
 
 	for cursor.Next(ctx) {
 		if err := cursor.Decode(&block); err != nil {
+			fmt.Println()
+			fmt.Println("Erro na resposta da função Decode que esta sendo chamada na Função GetBlock - {Function/Block.go}")
+			fmt.Println()
 			log.Fatal(err)
 		}
 		return block
@@ -111,12 +130,21 @@ func CheckBlock(ConnectionMongoDB, dataBase, col, key, code string) bool {
 	// Get Client, Context, CalcelFunc and err from connect method.
 	client, ctx, cancel, err := Database.Connect(ConnectionMongoDB)
 	if err != nil {
+		fmt.Println()
+		fmt.Println("Erro na resposta da função Connect - {Database/Mongo.go} que esta sendo chamada na Função CheckBlock - {Function/Block.go}")
+		fmt.Println()
 		panic(err)
 	}
 
 	// Free the resource when mainn dunction is  returned
 	defer Database.Close(client, ctx, cancel)
-	count, _ := Database.CountElemento(client, ctx, dataBase, col, key, code)
+	count, err := Database.CountElemento(client, ctx, dataBase, col, key, code)
+	if err != nil {
+		fmt.Println()
+		fmt.Println("Erro na resposta da função CountElemento - {Database/Mongo.go} que esta sendo chamada na Função CheckBlock - {Function/Block.go}")
+		fmt.Println()
+		panic(err)
+	}
 	if count > 0 {
 		return true
 	} else {
@@ -129,6 +157,9 @@ func SaveLatestBlock(latestBlock Model.LatestBlock,
 	if len(latestBlock.TxIndexes) > 0 {
 		cliente, contexto, cancel, errou := Database.Connect(ConnectionMongoDB)
 		if errou != nil {
+			fmt.Println()
+			fmt.Println("Erro na resposta da função Connect - {Database/Mongo.go} que esta sendo chamada na Função SaveLatestBlock - {Function/Block.go}")
+			fmt.Println()
 			log.Fatal(errou)
 		}
 
@@ -141,6 +172,9 @@ func SaveLatestBlock(latestBlock Model.LatestBlock,
 
 		// handle the error
 		if err != nil {
+			fmt.Println()
+			fmt.Println("Erro na resposta da função InsertOne - {Database/Mongo.go} que esta sendo chamada na Função SaveLatestBlock - {Function/Block.go}")
+			fmt.Println()
 			panic(err)
 		}
 
@@ -159,6 +193,9 @@ func DeleteLatestBlock(hash string, ConnectionMongoDB string, DataBaseMongo stri
 	// Get Client, Context, CalcelFunc and err from connect method.
 	client, ctx, cancel, err := Database.Connect(ConnectionMongoDB)
 	if err != nil {
+		fmt.Println()
+		fmt.Println("Erro na resposta da função Connect - {Database/Mongo.go} que esta sendo chamada na Função DeleteLatestBlock - {Function/Block.go}")
+		fmt.Println()
 		panic(err)
 	}
 
@@ -178,6 +215,9 @@ func DeleteLatestBlock(hash string, ConnectionMongoDB string, DataBaseMongo stri
 	cursor, err := Database.DeleteOne(client, ctx, DataBaseMongo, CollectionRecuperaDados, filter)
 
 	if err != nil {
+		fmt.Println()
+		fmt.Println("Erro na resposta da função DeleteOne - {Database/Mongo.go} que esta sendo chamada na Função DeleteLatestBlock - {Function/Block.go}")
+		fmt.Println()
 		panic(err)
 	}
 	// verifica a quantidade de linhas afetadas

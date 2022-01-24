@@ -1,6 +1,7 @@
 package Function
 
 import (
+	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
 	"gopkg.in/mgo.v2/bson"
 	"log"
@@ -13,6 +14,15 @@ func GetAllCluster(ConnectionMongoDB string, DataBaseMongo string, CollectionRec
 	// Get Client, Context, CalcelFunc and err from connect method.
 	client, ctx, cancel, err := Database.Connect(ConnectionMongoDB)
 	if err != nil {
+
+		fmt.Println()
+		fmt.Println("Erro na resposta da função Connect - {Database/Mongo.go} que esta sendo chamada na Função GetAllCluster - {Function/Cluster.go}")
+		fmt.Println()
+
+		fmt.Println()
+		fmt.Println(err.Error())
+		fmt.Println()
+
 		panic(err)
 	}
 
@@ -37,6 +47,15 @@ func GetAllCluster(ConnectionMongoDB string, DataBaseMongo string, CollectionRec
 		CollectionRecuperaDados, filter, option)
 	// handle the errors.
 	if err != nil {
+
+		fmt.Println()
+		fmt.Println("Erro na resposta da função Query - {Database/Mongo.go} que esta sendo chamada na Função GetAllCluster - {Function/Cluster.go}")
+		fmt.Println()
+
+		fmt.Println()
+		fmt.Println(err.Error())
+		fmt.Println()
+
 		panic(err)
 	}
 
@@ -47,6 +66,15 @@ func GetAllCluster(ConnectionMongoDB string, DataBaseMongo string, CollectionRec
 		var cluster Model.Cluster
 
 		if err := cursor.Decode(&cluster); err != nil {
+
+			fmt.Println()
+			fmt.Println("Erro na resposta da função Decode que esta sendo chamada na Função GetAllCluster - {Function/Cluster.go}")
+			fmt.Println()
+
+			fmt.Println()
+			fmt.Println(err.Error())
+			fmt.Println()
+
 			log.Fatal(err)
 		}
 
@@ -57,10 +85,19 @@ func GetAllCluster(ConnectionMongoDB string, DataBaseMongo string, CollectionRec
 	return Clusters
 }
 
-func SearchAddr(addr string, ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string) (result []Model.Cluster) {
+func SearchClusters(addr string, ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string) (result []Model.Cluster) {
 	// Get Client, Context, CalcelFunc and err from connect method.
 	client, ctx, cancel, err := Database.Connect(ConnectionMongoDB)
 	if err != nil {
+
+		fmt.Println()
+		fmt.Println("Erro na resposta da função Connect - {Database/Mongo.go} que esta sendo chamada na Função SearchClusters - {Function/Cluster.go}")
+		fmt.Println()
+
+		fmt.Println()
+		fmt.Println(err.Error())
+		fmt.Println()
+
 		panic(err)
 	}
 
@@ -83,6 +120,15 @@ func SearchAddr(addr string, ConnectionMongoDB string, DataBaseMongo string, Col
 
 	// handle the errors.
 	if err != nil {
+
+		fmt.Println()
+		fmt.Println("Erro na resposta da função Query - {Database/Mongo.go} que esta sendo chamada na Função SearchClusters - {Function/Cluster.go}")
+		fmt.Println()
+
+		fmt.Println()
+		fmt.Println(err.Error())
+		fmt.Println()
+
 		panic(err)
 	}
 
@@ -93,6 +139,15 @@ func SearchAddr(addr string, ConnectionMongoDB string, DataBaseMongo string, Col
 		var cluster Model.Cluster
 
 		if err := cursor.Decode(&cluster); err != nil {
+
+			fmt.Println()
+			fmt.Println("Erro na resposta da função Decode que esta sendo chamada na Função SearchClusters - {Function/Cluster.go}")
+			fmt.Println()
+
+			fmt.Println()
+			fmt.Println(err.Error())
+			fmt.Println()
+
 			log.Fatal(err)
 		}
 
@@ -107,6 +162,15 @@ func DeleteCluster(hash string, ConnectionMongoDB string, DataBaseMongo string, 
 	// Get Client, Context, CalcelFunc and err from connect method.
 	client, ctx, cancel, err := Database.Connect(ConnectionMongoDB)
 	if err != nil {
+
+		fmt.Println()
+		fmt.Println("Erro na resposta da função Connect - {Database/Mongo.go} que esta sendo chamada na Função DeleteCluster - {Function/Cluster.go}")
+		fmt.Println()
+
+		fmt.Println()
+		fmt.Println(err.Error())
+		fmt.Println()
+
 		panic(err)
 	}
 
@@ -126,6 +190,15 @@ func DeleteCluster(hash string, ConnectionMongoDB string, DataBaseMongo string, 
 	cursor, err := Database.DeleteOne(client, ctx, DataBaseMongo, CollectionRecuperaDados, filter)
 
 	if err != nil {
+
+		fmt.Println()
+		fmt.Println("Erro na resposta da função DeleteOne - {Database/Mongo.go} que esta sendo chamada na Função DeleteCluster - {Function/Cluster.go}")
+		fmt.Println()
+
+		fmt.Println()
+		fmt.Println(err.Error())
+		fmt.Println()
+
 		panic(err)
 	}
 	// verifica a quantidade de linhas afetadas
@@ -139,9 +212,18 @@ func DeleteCluster(hash string, ConnectionMongoDB string, DataBaseMongo string, 
 }
 
 func SaveCluster(Cluster Model.Cluster, ConnectionMongoDB string, DataBaseMongo string, Collection string) bool {
-	if len(Cluster.Hash) > 0 || len(Cluster.Input) > 0 {
+	if len(Cluster.Hash) > 0 {
 		cliente, contexto, cancel, errou := Database.Connect(ConnectionMongoDB)
 		if errou != nil {
+
+			fmt.Println()
+			fmt.Println("Erro na resposta da função Connect - {Database/Mongo.go} que esta sendo chamada na Função SaveCluster - {Function/Cluster.go}")
+			fmt.Println()
+
+			fmt.Println()
+			fmt.Println(errou.Error())
+			fmt.Println()
+
 			log.Fatal(errou)
 		}
 
@@ -154,6 +236,15 @@ func SaveCluster(Cluster Model.Cluster, ConnectionMongoDB string, DataBaseMongo 
 
 		// handle the error
 		if err != nil {
+
+			fmt.Println()
+			fmt.Println("Erro na resposta da função InsertOne - {Database/Mongo.go} que esta sendo chamada na Função SaveCluster - {Function/Cluster.go}")
+			fmt.Println()
+
+			fmt.Println()
+			fmt.Println(errou.Error())
+			fmt.Println()
+
 			panic(err)
 		}
 
@@ -163,20 +254,34 @@ func SaveCluster(Cluster Model.Cluster, ConnectionMongoDB string, DataBaseMongo 
 			return false
 		}
 
+	} else {
+		fmt.Println("Cluster invalido: Hash da Transação esta vazio")
+		return false
 	}
 
 	return false
 }
+
 func PutListCluster(Hash string, Input []string, ConnectionMongoDB string, DataBaseMongo string, Collection string) bool {
 	for _, item := range Input {
 		PutCluster(Hash, item, ConnectionMongoDB, DataBaseMongo, Collection)
 	}
 	return true
 }
+
 func PutCluster(Hash string, Input string, ConnectionMongoDB string, DataBaseMongo string, Collection string) bool {
 	if len(Input) > 0 {
 		cliente, contexto, cancel, errou := Database.Connect(ConnectionMongoDB)
 		if errou != nil {
+
+			fmt.Println()
+			fmt.Println("Erro na resposta da função Connect - {Database/Mongo.go} que esta sendo chamada na Função PutCluster - {Function/Cluster.go}")
+			fmt.Println()
+
+			fmt.Println()
+			fmt.Println(errou.Error())
+			fmt.Println()
+
 			log.Fatal(errou)
 		}
 
@@ -195,6 +300,14 @@ func PutCluster(Hash string, Input string, ConnectionMongoDB string, DataBaseMon
 
 		// handle the error
 		if err != nil {
+
+			fmt.Println()
+			fmt.Println("Erro na resposta da função UpdateOne - {Database/Mongo.go} que esta sendo chamada na Função PutCluster - {Function/Cluster.go}")
+			fmt.Println()
+
+			fmt.Println()
+			fmt.Println(errou.Error())
+			fmt.Println()
 			panic(err)
 		}
 
@@ -203,6 +316,9 @@ func PutCluster(Hash string, Input string, ConnectionMongoDB string, DataBaseMon
 		} else {
 			return false
 		}
+	} else {
+		fmt.Println("O Hash do Cluster esta vazio")
+		return false
 	}
 	return false
 }

@@ -3,26 +3,32 @@ package Controller
 import (
 	"fmt"
 	"main/Shared/API"
-	"main/Shared/Database"
 	"main/Shared/Function"
 	"main/Shared/Model"
 	"strconv"
 )
 
-// Salva todas as transações de um Block no MongoDB
-func SaveTxs(Txs []int, urlAPI string, rawTx string, ConnectionMongoDB string, DataBaseMongo string, Collection string, FileLogHash string, indiceInicial int) bool {
+// SaveTxs Salva todas as transações de um Block no MongoDB
+func SaveTxs(Txs []int, urlAPI string, rawTx string, ConnectionMongoDB string, DataBaseMongo string, Collection string, FileLogHash string, indiceInicial int) (TransacaoSalva bool, FinalizaExecucao bool) {
 	//indiceInicial := Function.GetIndiceLogIndice(FileLogHash) + 1
 	for contador := indiceInicial; contador < len(Txs); contador++ {
-		confirm := SaveTx(strconv.Itoa(Txs[contador]), urlAPI, rawTx, ConnectionMongoDB, DataBaseMongo, Collection)
+		confirm, finalizaExecucao := SaveTx(strconv.Itoa(Txs[contador]), urlAPI, rawTx, ConnectionMongoDB, DataBaseMongo, Collection)
 		if !confirm {
 			fmt.Println("Não foi salvo a transação ", Txs[contador])
-			return false
+			if !finalizaExecucao {
+				fmt.Println("Não é necessario finalizar a execução")
+				fmt.Println("Indice Atualizado para ", contador)
+				temp := []string{strconv.Itoa(contador)}
+				Function.EscreverTexto(temp, FileLogHash)
+				return confirm, finalizaExecucao
+			}
+			return confirm, finalizaExecucao
 		} else {
 			fmt.Println("Salvo a Transação: Nº ", Txs[contador])
 			fmt.Println("Indice Atualizado para ", contador)
 			temp := []string{strconv.Itoa(contador)}
 			Function.EscreverTexto(temp, FileLogHash)
-			return true
+			return confirm, finalizaExecucao
 		}
 		//fmt.Println("Salvo a Transação: Nº ", Txs[contador])
 		//temp := []string{strconv.Itoa(contador)}
@@ -31,42 +37,61 @@ func SaveTxs(Txs []int, urlAPI string, rawTx string, ConnectionMongoDB string, D
 		//
 		//time.Sleep(time.Minute * time.Duration(tempo))
 	}
-
-	return true
+	fmt.Println("Indice Atual: ", indiceInicial, "Não foi salvo")
+	return false, true
 }
 
-// Salva as Transações no MongoDb
-func SaveTx(hash string, urlAPI string, rawTx string, ConnectionMongoDB string, DataBaseMongo string, Collection string) bool {
-	// verifica se a transacao existe
-	client, ctx, cancel, err := Database.Connect(ConnectionMongoDB)
-	if err != nil {
-		panic(err)
-	}
-
-	defer Database.Close(client, ctx, cancel)
-
+// SaveTx Salva as Transações no MongoDb consultando pelo API Blockchain
+func SaveTx(hash string, urlAPI string, rawTx string, ConnectionMongoDB string, DataBaseMongo string, Collection string) (TransacaoSalva bool, FinalizaExecucao bool) {
 	txIndex, _ := strconv.Atoi(hash)
-	count, _ := Database.CountElementoTxIndex(client, ctx, DataBaseMongo, Collection, "tx_index", txIndex)
+	check := Function.CheckTxIndex(ConnectionMongoDB, DataBaseMongo, Collection, "tx_index", txIndex)
 
-	if count > 0 {
-		return false
+	if check {
+		fmt.Println("TxIndex: ", txIndex)
+		fmt.Println("Essa Transação existe na Collection ", Collection)
+		return false, false
 	}
 	tx := GetTx(hash, urlAPI, rawTx)
+
+	if len(tx.Inputs) < 1 && len(tx.Hash) > 0 {
+
+		fmt.Println()
+		fmt.Println("O objeto Tx retornado não foi salvo, porque a lista de inputs está vázia")
+		fmt.Println("O hash dessa transação foi salvo em TxAddrEmpty para ser verificado")
+		Function.EscreverTextoSemApagar([]string{tx.Hash}, "..\\Tcc\\TxAddrEmpty.txt")
+		fmt.Println()
+		return false, false
+	}
+
 	if len(tx.Hash) > 0 {
 		resposta := Function.SaveTx(tx, ConnectionMongoDB, DataBaseMongo, Collection)
 		if resposta {
-			return true
+			return true, false
 		} else {
-			return false
+			return false, true
 		}
 	} else {
-		fmt.Println("O campo Hash está vazio, por isso nao foi salvo")
-		return false
+		fmt.Println()
+		fmt.Println("Erro: Não foi possível realizar a Requisição pela Transação")
+		fmt.Println("Erro: O objeto retornado pela API não é uma Transação válida")
+		fmt.Println()
+		return false, true
 	}
-	return false
 }
 
-// Get Transação da API da Blockchain
-func GetTx(hash string, urlAPI string, rawTx string) Model.Transaction {
+// GetTx Get Transação da API da Blockchain
+func GetTx(hash, urlAPI, rawTx string) Model.Transaction {
 	return API.GetTransaction(hash, urlAPI, rawTx)
+}
+
+func SalveTxMongoDB(tx Model.Transaction, ConnectionMongoDB, DataBaseMongo, Collection string) bool {
+	return Function.SalveTxMongoDB(tx, ConnectionMongoDB, DataBaseMongo, Collection)
+}
+
+func DeleteTxMongo(hash string, ConnectionMongoDB string, DataBaseMongo string, Collection string) bool {
+	return Function.DeleteTxMongo(hash, ConnectionMongoDB, DataBaseMongo, Collection)
+}
+
+func GetTxMongoDB(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string) Model.Transaction {
+	return Function.GetTxMongoDB(ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
 }

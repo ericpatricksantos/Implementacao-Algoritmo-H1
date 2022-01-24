@@ -155,6 +155,7 @@ func CountElemento(client *mongo.Client, ctx context.Context, dataBase string, c
 			filter,
 			opts)
 		if err != nil {
+			fmt.Println("Erro na Função CountElemento - {Database/Mongo.go}")
 			log.Fatal(err)
 		}
 	}

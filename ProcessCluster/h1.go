@@ -1,26 +1,37 @@
 package main
 
-import "main/Shared/Controller"
-
-var ConnectionMongoDB string = Controller.GetConfig().ConnectionMongoDB[0] //"connection string into your application code"
-var DataBase string = Controller.GetConfig().DataBase[0]                   //blockchain
-
-var UrlAPI string = Controller.GetConfig().UrlAPI[0] // "https://blockchain.info"
-
-var LatestBlock string = Controller.GetConfig().LatestBlock
-var RawTx string = Controller.GetConfig().RawTx
-
-var CollectionLatestBlock string = Controller.GetConfig().Collection[0]
-var CollectionTesteTxs string = Controller.GetConfig().Collection[1]
-var CollectionTesteCluster string = Controller.GetConfig().Collection[2]
-var CollectionCluster string = Controller.GetConfig().Collection[3]
-var CollectionTxs string = Controller.GetConfig().Collection[4]
-
-var FileLogHash string = Controller.GetConfig().FileLog[0]
-var FileLogBlock string = Controller.GetConfig().FileLog[1]
+import (
+	"fmt"
+	"main/Shared/Controller"
+)
 
 func main() {
+	execucoes := 1
+	i := 0
+	escolhaConexao := 1
+	ConnectionMongoDB := []string{
+		"mongodb+srv://ericpatrick:9858epJusd@cluster0.cieqi.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+		"mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb",
+	}
+	DataBaseCluster := "Cluster"
+	ColClusterProcessed := "processed"
+	for {
+		if i >= execucoes {
+			break
+		}
+		fmt.Println()
+		fmt.Println("Aplicando Algoritmo H1")
 
-	////Reorganiza os Cluster utilizando o algoritmo H1
-	Controller.H1(ConnectionMongoDB, DataBase, CollectionTesteCluster)
+		confirm := Controller.H1(ConnectionMongoDB[escolhaConexao], DataBaseCluster, ColClusterProcessed)
+
+		if confirm {
+			fmt.Println("Execução finalizada com Sucesso")
+		} else {
+			fmt.Println("Execução finalizada com erro")
+		}
+		fmt.Println()
+
+		i++
+
+	}
 }

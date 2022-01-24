@@ -15,11 +15,11 @@ type MultiEndereco struct {
 }
 
 type Carteira struct {
-	Final_balance  int64 `json:"final_balance"`
-	N_tx           int   `json:"n_tx"`
-	N_tx_filtered  int   `json:"n_tx_filtered"`
-	Total_received int64 `json:"total_received"`
-	Total_sent     int64 `json:"total_sent"`
+	FinalBalance  int64 `json:"final_balance"`
+	NTx           int   `json:"n_tx"`
+	NTxFiltered   int   `json:"n_tx_filtered"`
+	TotalReceived int64 `json:"total_received"`
+	TotalSent     int64 `json:"total_sent"`
 }
 
 type ListAddress struct {
@@ -39,6 +39,17 @@ type UnicoEndereco struct {
 	Total_sent     int64         `json:"total_sent"`
 	Final_balance  int64         `json:"final_balance"`
 	Txs            []Transaction `json:"txs"`
+}
+
+type Endereco struct {
+	Hash160        string `json:"hash160"`
+	Address        string `json:"address"`
+	N_tx           int    `json:"n_tx"`
+	N_unredeemed   int64  `json:"n_unredeemed"`
+	Total_received int64  `json:"total_received"`
+	Total_sent     int64  `json:"total_sent"`
+	Final_balance  int64  `json:"final_balance"`
+	Txs            []Tx   `json:"txs"`
 }
 
 type Block struct {
@@ -76,12 +87,23 @@ type Transaction struct {
 	Out          []ListaOut    `json:"out"`
 }
 
+type Tx struct {
+	Hash     string       `json:"hash"`
+	Size     int          `json:"size"`
+	Tx_index int64        `json:"tx_index"`
+	Inputs   []ListInputs `json:"inputs"`
+}
+
+type ListInputs struct {
+	Prev_Out PreOut `json:"prev_out"`
+}
+
 type ListaInputs struct {
 	Sequence int64   `json:"sequence"`
 	Witness  string  `json:"witness"`
 	Script   string  `json:"script"`
 	Index    int     `json:"index"`
-	Prev_out PrevOut `json:"prev_out"`
+	Prev_Out PrevOut `json:"prev_out"`
 }
 
 type ListaOut struct {
@@ -104,6 +126,10 @@ type PrevOut struct {
 	Addr               string              `json:"addr"`
 	N                  int                 `json:"n"`
 	Type               int                 `json:"type"`
+}
+
+type PreOut struct {
+	Addr string `json:"addr"`
 }
 
 type Spendingoutpoints struct {

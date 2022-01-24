@@ -4,7 +4,11 @@
     ],
     "FileLog": [
         "..\\Tcc\\IndiceTx.txt",
-        "..\\Tcc\\IndiceBlock.txt"
+        "..\\Tcc\\IndiceBlock.txt",
+        "..\\Tcc\\TxAddrEmpty.txt",
+        "..\\Tcc\\AddrInputEmpty.txt",
+        "..\\Tcc\\IndiceInput.txt"
+
     ],
     "DataBase": [
         "AnalyzedElement",
