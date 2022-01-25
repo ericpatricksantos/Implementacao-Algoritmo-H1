@@ -587,9 +587,9 @@ func ProcessDistance(ConnectionMongoDB,
 
 func MudancaStatusDistance(distancia Model.Distancia, ConnectionMongoDB, DataBaseDistancia, processedDistancia, processingDistancia string) bool {
 	distancia.Baixou = true
-	salvo, existente := SalveDistanciaMongoDB(distancia, ConnectionMongoDB, DataBaseDistancia, processedDistancia)
+	salvo := SaveDistancia(distancia, ConnectionMongoDB, DataBaseDistancia, processedDistancia)
 
-	if !salvo && !existente {
+	if !salvo {
 		fmt.Println("Não foi salvo com Sucesso")
 		return false
 	} else {

@@ -18,7 +18,7 @@ func main() {
 	RawAddr := "/rawaddr/"
 	MultiAddr := "/multiaddr?active="
 	EncerraExecucao := false
-	tempo := 5
+	tempo := 2
 	count := 0
 
 	for {
