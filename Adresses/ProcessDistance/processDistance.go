@@ -18,7 +18,8 @@ func main() {
 	RawAddr := "/rawaddr/"
 	MultiAddr := "/multiaddr?active="
 	EncerraExecucao := false
-	tempo := 2
+	tempo := 3
+	tempoAux := 3
 	count := 0
 
 	for {
@@ -38,7 +39,7 @@ func main() {
 				break
 			}
 
-			salvo, existente := Function.SalveDistanciaMongoDB(distancia, ConnectionMongoDB, DataBaseDistancia, processingDistance)
+			salvo, _, existente := Function.SalveDistanciaMongoDB(distancia, ConnectionMongoDB, DataBaseDistancia, processingDistance)
 
 			if !salvo && !existente {
 				fmt.Println()
@@ -64,19 +65,24 @@ func main() {
 			fmt.Println()
 		} else {
 
-			confirm, finalizaExecucao := Function.ProcessDistance(ConnectionMongoDB, DataBaseAddr, awaitingProcessing, processedAddr,
+			confirm, finalizaExecucao, erro := Function.ProcessDistance(ConnectionMongoDB, DataBaseAddr, awaitingProcessing, processedAddr,
 				DataBaseDistancia, processingDistance, processsedDistance, urlAPI, RawAddr, MultiAddr)
 
 			if confirm && !finalizaExecucao {
 				fmt.Println("Distancia Processada")
 				count++
-			} else if !confirm && !finalizaExecucao {
+			} else if !confirm && !finalizaExecucao && !erro {
 				fmt.Println("O endereço foi salvo anteriormente")
 				EncerraExecucao = finalizaExecucao
-			} else {
+			} else if !erro {
 				fmt.Println("Distancia nao foi processada")
 				EncerraExecucao = true
 				break
+			}
+			if erro {
+				tempo = tempo + 30
+			} else {
+				tempo = tempoAux
 			}
 			fmt.Println()
 			fmt.Println("Enderecos Salvos: ", count)

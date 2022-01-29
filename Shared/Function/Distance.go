@@ -12,15 +12,14 @@ import (
 
 // Funções para Distancia
 
-func SaveDistancia(analise Model.Distancia, ConnectionMongoDB string, DataBaseMongo string, Collection string) bool {
+func SaveDistancia(analise Model.Distancia, ConnectionMongoDB string, DataBaseMongo string, Collection string) (sucesso bool, erro bool) {
 	if len(analise.AddressInput) > 0 {
 		cliente, contexto, cancel, errou := Database.Connect(ConnectionMongoDB)
 		if errou != nil {
 			fmt.Println()
 			fmt.Println("Erro na resposta da função Connect - {Database/Mongo.go}  que esta sendo chamada na Função SaveDistancia - {Function/Distance.go}")
-			fmt.Println()
-
-			panic(errou)
+			fmt.Println(errou)
+			return false, true
 		}
 
 		Database.Ping(cliente, contexto)
@@ -34,26 +33,25 @@ func SaveDistancia(analise Model.Distancia, ConnectionMongoDB string, DataBaseMo
 		if err != nil {
 			fmt.Println()
 			fmt.Println("Erro na resposta da função InsertOne - {Database/Mongo.go}  que esta sendo chamada na Função SaveDistancia - {Function/Distance.go}")
-			fmt.Println()
-
-			panic(err)
+			fmt.Println(err)
+			return false, true
 		}
 
 		if result.InsertedID != nil {
-			return true
+			return true, false
 		} else {
-			return false
+			return false, true
 		}
 
 	} else {
 		fmt.Println("Addr esta vazio -", analise.AddressInput, "-")
-		return false
+		return false, false
 	}
 }
 
 func SalveAllDistanciaMongo(distancias []Model.Distancia, ConnectionMongoDB, DataBaseMongo, Collection string) bool {
 	for _, item := range distancias {
-		salvo, existente := SalveDistanciaMongoDB(item, ConnectionMongoDB, DataBaseMongo, Collection)
+		salvo, _, existente := SalveDistanciaMongoDB(item, ConnectionMongoDB, DataBaseMongo, Collection)
 
 		if !salvo && !existente {
 			return false
@@ -63,13 +61,14 @@ func SalveAllDistanciaMongo(distancias []Model.Distancia, ConnectionMongoDB, Dat
 	return true
 }
 
-func SalveDistanciaMongoDB(analise Model.Distancia, ConnectionMongoDB, DataBaseMongo, Collection string) (salvo bool, existente bool) {
+func SalveDistanciaMongoDB(analise Model.Distancia, ConnectionMongoDB, DataBaseMongo, Collection string) (salvo bool, erro bool, existente bool) {
 	confirm := CheckDistancia(ConnectionMongoDB, DataBaseMongo, Collection, "addressinput", analise.AddressInput)
 	if confirm {
 		fmt.Println("Esse addr ja existe nessa Collection: ", Collection)
-		return false, true
+		return false, true, false
 	}
-	return SaveDistancia(analise, ConnectionMongoDB, DataBaseMongo, Collection), false
+	salvo, erro = SaveDistancia(analise, ConnectionMongoDB, DataBaseMongo, Collection)
+	return salvo, erro, false
 }
 
 func GetDistanciaMongoDB(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string) (analise Model.Distancia) {
@@ -289,7 +288,7 @@ func CreateDistance(ConnectionMongoDB,
 						AddressAnterior: enderecoEmAnalise.Address,
 						AddressNivel0:   enderecoEmAnalise.Address,
 					}
-					confirm, existente := SalveDistanciaMongoDB(distancia, ConnectionMongoDB, DataBaseDistancia, awaitingProcessingDistancia)
+					confirm, _, existente := SalveDistanciaMongoDB(distancia, ConnectionMongoDB, DataBaseDistancia, awaitingProcessingDistancia)
 
 					if !confirm && existente {
 						fmt.Println("Falha ao salvar distancia, porque ja existe")
@@ -364,7 +363,7 @@ func CreateDistance(ConnectionMongoDB,
 						AddressAnterior: enderecos[0].Address,
 						AddressNivel0:   addressNivel0,
 					}
-					confirm, existente := SalveDistanciaMongoDB(distancia, ConnectionMongoDB, DataBaseDistancia, awaitingProcessingDistancia)
+					confirm, _, existente := SalveDistanciaMongoDB(distancia, ConnectionMongoDB, DataBaseDistancia, awaitingProcessingDistancia)
 
 					if !confirm && existente {
 						fmt.Println()
@@ -521,7 +520,7 @@ func ContainsDistancia(distancia Model.Distancia, distancias []Model.Distancia) 
 func ProcessDistance(ConnectionMongoDB,
 	DataBaseAddr, awaitingProcessing, processedAddr,
 	DataBaseDistancia, processingDistancia, processedDistancia,
-	urlAPI, RawAddr, MultiAddr string) (Processado bool, EncerraExecucao bool) {
+	urlAPI, RawAddr, MultiAddr string) (Processado bool, EncerraExecucao bool, erro bool) {
 	distancia := GetDistanciaMongoDB(ConnectionMongoDB, DataBaseDistancia, processingDistancia)
 
 	var addr Model.Endereco
@@ -540,19 +539,23 @@ func ProcessDistance(ConnectionMongoDB,
 				mudou := MudancaStatusDistance(distancia, ConnectionMongoDB, DataBaseDistancia, processedDistancia, processingDistancia)
 
 				if mudou {
-					return true, false
+					return true, false, false
 				} else {
-					return false, true
+					return false, true, true
 				}
 
 			} else {
 				fmt.Println("Endereço retornado da API não foi salvo")
-				return false, true
+				return false, true, true
 			}
 		} else {
 
 			MultiAddr := API.GetMultiAddr([]string{distancia.AddressInput}, urlAPI, MultiAddr)
 
+			if MultiAddr.Txs == nil {
+				fmt.Println("O valor MultiAddr retornado da API esta vazio")
+				return false, false, true
+			}
 			addr := ConverteMultiAddrParaAddr(MultiAddr)
 
 			salvaAddr := SalveAddrSimplicadoMongoDB(addr, ConnectionMongoDB, DataBaseAddr, awaitingProcessing)
@@ -560,13 +563,13 @@ func ProcessDistance(ConnectionMongoDB,
 			if salvaAddr {
 				mudou := MudancaStatusDistance(distancia, ConnectionMongoDB, DataBaseDistancia, processedDistancia, processingDistancia)
 				if mudou {
-					return true, false
+					return true, false, false
 				} else {
-					return false, true
+					return false, true, true
 				}
 			} else {
 				fmt.Println("Endereço retornado da API não foi salvo")
-				return false, true
+				return false, true, false
 			}
 
 		}
@@ -577,17 +580,17 @@ func ProcessDistance(ConnectionMongoDB,
 		mudou := MudancaStatusDistance(distancia, ConnectionMongoDB, DataBaseDistancia, processedDistancia, processingDistancia)
 
 		if mudou {
-			return true, false
+			return true, false, false
 		} else {
-			return false, true
+			return false, true, true
 		}
 	}
-	return false, true
+	return false, true, false
 }
 
 func MudancaStatusDistance(distancia Model.Distancia, ConnectionMongoDB, DataBaseDistancia, processedDistancia, processingDistancia string) bool {
 	distancia.Baixou = true
-	salvo := SaveDistancia(distancia, ConnectionMongoDB, DataBaseDistancia, processedDistancia)
+	salvo, _ := SaveDistancia(distancia, ConnectionMongoDB, DataBaseDistancia, processedDistancia)
 
 	if !salvo {
 		fmt.Println("Não foi salvo com Sucesso")
