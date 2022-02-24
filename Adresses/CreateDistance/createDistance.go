@@ -18,13 +18,15 @@ func main() {
 	processedAddr := "processed"
 
 	DataBaseDistancia := "Distancia"
-	awaitingProcessing := "awaitingProcessing"
+	awaitingProcessing := "awaitingProcessingTerceiroNivel"
 	processsedDistancia := "processed"
+
+	tempo := 2
 
 	confirm := Function.CreateDistance(ConnectionMongoDB,
 		DataBaseAddr, awaitingProcessingEnderecosEmAnalise, processedEnderecosEmAnalise,
 		awaitingProcessingAddr, processingAddr, processedAddr,
-		DataBaseDistancia, awaitingProcessing, processsedDistancia)
+		DataBaseDistancia, awaitingProcessing, processsedDistancia, tempo)
 	if confirm {
 		fmt.Println()
 		fmt.Println("Todos os endereços foram salvos")

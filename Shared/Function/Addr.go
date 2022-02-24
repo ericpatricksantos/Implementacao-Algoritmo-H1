@@ -106,6 +106,15 @@ func SalveAddrMongoDB(addr Model.UnicoEndereco, ConnectionMongoDB, DataBaseMongo
 	return SaveAddr(addr, ConnectionMongoDB, DataBaseMongo, Collection)
 }
 
+func SaveAddrMongoDB(addr Model.UnicoEndereco, ConnectionMongoDB, DataBaseMongo, Collection string) (saveSucess bool, existe bool) {
+	confirm := CheckAddr(ConnectionMongoDB, DataBaseMongo, Collection, "address", addr.Address)
+	if confirm {
+		fmt.Println("Esse addr ja existe nessa Collection: ", Collection)
+		return false, true
+	}
+	return SaveAddr(addr, ConnectionMongoDB, DataBaseMongo, Collection), false
+}
+
 func GetAddr(endereco, urlAPI, RawAddr string) Model.UnicoEndereco {
 	return API.GetUnicoEndereco(endereco, urlAPI, RawAddr)
 }
@@ -422,6 +431,30 @@ func MudancaStatusAddr_Processing_Processed(addr Model.UnicoEndereco, Connection
 	}
 
 	return true
+}
+
+func MudancaStatusAddr(addr Model.UnicoEndereco, ConnectionMongoDB, DataBase, collectionOrigem, collectionDestino string) (mudou bool, existente bool) {
+	salvo, existe := SaveAddrMongoDB(addr, ConnectionMongoDB, DataBase, collectionDestino)
+
+	if !salvo && !existe {
+		fmt.Println("Não foi salvo com Sucesso a Addr na collection ", collectionDestino)
+		return false, false
+	} else if !salvo && existente {
+		fmt.Println("Essa Addr ja existente na collection ", collectionDestino)
+	} else {
+		fmt.Println("Salvo com sucesso a Addr na collection ", collectionDestino)
+	}
+
+	deletado := DeleteAddrMongo(addr.Address, ConnectionMongoDB, DataBase, collectionOrigem)
+
+	if !deletado {
+		fmt.Println("Addr: ", addr.Address, " não foi deletado de ", collectionOrigem)
+		return false, false
+	} else {
+		fmt.Println("Deletado com sucesso a tx da collection", collectionOrigem)
+	}
+
+	return true, false
 }
 
 // Funções para MultiAddr

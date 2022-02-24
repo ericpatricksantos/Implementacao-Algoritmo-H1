@@ -85,22 +85,13 @@ func CreateCluster(ConnectionMongoDB, DataBaseTx, CollectionTx, DataBaseCluster,
 	} else if len(Txs[0].Inputs) < 1 {
 		fmt.Println("******** A lista de Inputs está vazio **")
 		fmt.Println("******** A Transação será salva em processed **")
-		// processed := Config.GetConfig().Collection[2]
-		// Teste
-		processed := "Txprocessed"
-		confirmSalveTx := Function2.SalveTxMongoDB(Txs[0], ConnectionMongoDB, DataBaseTx, processed)
-		if confirmSalveTx {
-			fmt.Println("******** Salva com Sucesso: ", Hash, " **")
-			fmt.Println("******** A Transação será excluída de processing **")
-			confirmDelete := Function2.DeleteTxMongo(Hash, ConnectionMongoDB, DataBaseTx, CollectionTx)
-			if confirmDelete {
-				fmt.Println("******** Transação deletada da Collection processing **")
-			} else {
-				fmt.Println("******** Transação nao foi deletada da Collection processing **")
-				return false, true
-			}
+		processed := Config.GetConfig().Collection[2]
+		mudou := Function2.MudancaStatusTx(Txs[0], ConnectionMongoDB, DataBaseTx, CollectionTx, processed)
+
+		if mudou {
+			fmt.Println("Mudança de status concluida ", CollectionTx, " >> ", processed)
 		} else {
-			fmt.Println("******** Não foi salvo: ", Hash, " **")
+			fmt.Println("Falha na mudança de status ", CollectionTx, " >> ", processed)
 			return false, true
 		}
 
@@ -146,26 +137,19 @@ func CreateCluster(ConnectionMongoDB, DataBaseTx, CollectionTx, DataBaseCluster,
 
 					fmt.Println("******** Salvando a Transação em processed **")
 					processed := Config.GetConfig().Collection[2]
-					confirmSalveTx := Function2.SalveTxMongoDB(Txs[i], ConnectionMongoDB, DataBaseTx, processed)
-					if confirmSalveTx {
-						fmt.Println("********  Transação salva com Sucesso: ", Hash, " **")
 
-						fmt.Println("********  Excluindo a Transação processing **")
-						confirmDelete := Function2.DeleteTxMongo(Hash, ConnectionMongoDB, DataBaseTx, CollectionTx)
-						if confirmDelete {
-							fmt.Println("******** Transação excluida com sucesso **")
-						} else {
-							fmt.Println("******** Transação nao foi excluida **")
-							return false, true
-						}
+					mudou := Function2.MudancaStatusTx(Txs[i], ConnectionMongoDB, DataBaseTx, CollectionTx, processed)
+
+					if mudou {
+						fmt.Println("Mudança de status concluida ", CollectionTx, " >> ", processed)
 					} else {
-						fmt.Println("******** Não foi salvo: ", Txs[i].Hash, " **")
+						fmt.Println("Falha na mudança de status ", CollectionTx, " >> ", processed)
 						return false, true
 					}
-
 					fmt.Println("******** O hash dessa Transação será salvo em um arquivo chamado AddrInputEmpty.txt **")
 					Function2.EscreverTextoSemApagar([]string{Hash}, "..\\Tcc\\AddrInputEmpty.txt")
-					break
+					return false, false
+
 				} else if QtdEnderecosVazios > 0 && QtdEnderecosVazios < lenInputs && k == 1 {
 					fmt.Println("******** Na Hash: ", Txs[i].Hash)
 					fmt.Println("******** Existem ", QtdEnderecosVazios, " vazios dentro da lista de inputs **")
@@ -174,10 +158,21 @@ func CreateCluster(ConnectionMongoDB, DataBaseTx, CollectionTx, DataBaseCluster,
 				}
 
 				Cluster.Input, _ = Function2.RemoveDuplicados(inputs)
-				confirm := Function2.SaveCluster(Cluster, ConnectionMongoDB, DataBaseCluster, CollectionCluster)
+				confirm, existente := Function2.SaveClusterMongo(Cluster, ConnectionMongoDB, DataBaseCluster, CollectionCluster)
 
 				if confirm {
 					return true, false
+				} else if !confirm && existente {
+					processed := Config.GetConfig().Collection[2]
+					mudou := Function2.MudancaStatusTx(Txs[i], ConnectionMongoDB, DataBaseTx, CollectionTx, processed)
+
+					if mudou {
+						fmt.Println("Mudança de status concluida ", CollectionTx, " >> ", processed)
+					} else {
+						fmt.Println("Falha na mudança de status ", CollectionTx, " >> ", processed)
+						return false, true
+					}
+					return false, false
 				} else {
 					return false, true
 				}
@@ -185,4 +180,102 @@ func CreateCluster(ConnectionMongoDB, DataBaseTx, CollectionTx, DataBaseCluster,
 		}
 	}
 	return false, true
+}
+
+func CreateClustersAddr(ConnectionMongoDB, DataBaseCluster, CollectionCluster,
+	DataBaseAddr, processed, processedCluster,
+	processedAddrAnalise, processedAddrAnaliseCluster string, NewAddrAnalise bool) (createClusterSucess bool, FinalizaExecucao bool) {
+	var Cluster Model.Cluster
+	tamanhoTxAddrOutrosNiveis := 0
+	tamanhoAddrOutrosNiveis := 0
+	tamanhoTxAddrAnalise := 0
+	tamanhoAddrAnalise := 0
+	enderecosEmAnalise := Model.UnicoEndereco{}
+	enderecosOutrosNiveis := Model.UnicoEndereco{}
+	if NewAddrAnalise {
+		enderecosEmAnalise = Function2.GetAddrMongoDB(ConnectionMongoDB, DataBaseAddr, processedAddrAnalise)
+		tamanhoTxAddrAnalise = len(enderecosEmAnalise.Txs)
+		tamanhoAddrAnalise = len(enderecosEmAnalise.Address)
+	}
+
+	if tamanhoAddrAnalise > 0 && tamanhoTxAddrAnalise > 0 {
+		inputs := Function2.GetAllInputs(enderecosEmAnalise)
+		if tamanhoTxAddrAnalise > 0 && tamanhoAddrAnalise > 0 {
+			Cluster.Hash = enderecosEmAnalise.Address
+			Cluster.Input = inputs
+		} else {
+			fmt.Println("Não foi criado o cluster do endereço ", enderecosEmAnalise.Address)
+			return false, true
+		}
+
+	} else {
+		enderecosOutrosNiveis = Function2.GetAddrMongoDB(ConnectionMongoDB, DataBaseAddr, processed)
+		tamanhoTxAddrOutrosNiveis = len(enderecosOutrosNiveis.Txs)
+		tamanhoAddrOutrosNiveis = len(enderecosOutrosNiveis.Address)
+		if tamanhoAddrOutrosNiveis > 0 && tamanhoTxAddrOutrosNiveis > 0 {
+			inputs := Function2.GetAllInputs(enderecosOutrosNiveis)
+			Cluster.Hash = enderecosOutrosNiveis.Address
+			Cluster.Input = inputs
+		} else {
+			fmt.Println("Não foi criado o cluster do endereço ", enderecosOutrosNiveis.Address)
+			return false, true
+		}
+	}
+	fmt.Println()
+	fmt.Println("Criando clusters com o Address: ", Cluster.Hash)
+	fmt.Println()
+	if len(Cluster.Hash) > 0 && len(Cluster.Input) > 0 {
+		confirm, existente := Function2.SaveClusterMongo(Cluster, ConnectionMongoDB, DataBaseCluster, CollectionCluster)
+
+		if confirm {
+			if tamanhoAddrAnalise > 0 && tamanhoTxAddrAnalise > 0 {
+				mudou, _ := Function2.MudancaStatusAddr(enderecosEmAnalise, ConnectionMongoDB, DataBaseAddr, processedAddrAnalise, processedAddrAnaliseCluster)
+				if mudou {
+					fmt.Println("Mudado o status de ", processedAddrAnalise, " >> ", processedAddrAnaliseCluster)
+					return true, false
+				} else {
+					fmt.Println("Não foi mudado o status de ", processedAddrAnalise, " >> ", processedAddrAnaliseCluster)
+					return true, true
+				}
+			} else if tamanhoTxAddrOutrosNiveis > 0 && tamanhoAddrOutrosNiveis > 0 {
+				mudou, _ := Function2.MudancaStatusAddr(enderecosOutrosNiveis, ConnectionMongoDB, DataBaseAddr, processed, processedCluster)
+				if mudou {
+					fmt.Println("Mudado o status de ", processed, " >> ", processedCluster)
+					return true, false
+				} else {
+					fmt.Println("Não foi mudado o status de ", processed, " >> ", processedCluster)
+					return true, true
+				}
+			}
+			fmt.Println("Cluster salvo, mas nao mudou o status")
+			fmt.Println("Address: ", Cluster.Hash, " para ser analisado")
+			return true, true
+		} else if !confirm && existente {
+			if tamanhoAddrAnalise > 0 && tamanhoTxAddrAnalise > 0 {
+				mudou, _ := Function2.MudancaStatusAddr(enderecosEmAnalise, ConnectionMongoDB, DataBaseAddr, processedAddrAnalise, processedAddrAnaliseCluster)
+				if mudou {
+					fmt.Println("Mudado o status de ", processedAddrAnalise, " >> ", processedAddrAnaliseCluster)
+					return false, false
+				} else {
+					fmt.Println("Não foi mudado o status de ", processedAddrAnalise, " >> ", processedAddrAnaliseCluster)
+					return false, true
+				}
+			} else if tamanhoTxAddrOutrosNiveis > 0 && tamanhoAddrOutrosNiveis > 0 {
+				mudou, _ := Function2.MudancaStatusAddr(enderecosOutrosNiveis, ConnectionMongoDB, DataBaseAddr, processed, processedCluster)
+				if mudou {
+					fmt.Println("Mudado o status de ", processed, " >> ", processedCluster)
+					return true, false
+				} else {
+					fmt.Println("Não foi mudado o status de ", processed, " >> ", processedCluster)
+					return false, true
+				}
+			}
+			return false, true
+		} else {
+			return false, true
+		}
+	} else {
+		fmt.Println("Valores do Hash e inputs do Cluster vazios")
+		return false, true
+	}
 }

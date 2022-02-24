@@ -322,3 +322,48 @@ func PutCluster(Hash string, Input string, ConnectionMongoDB string, DataBaseMon
 	}
 	return false
 }
+
+func CheckCluster(ConnectionMongoDB, dataBase, col, key, code string) bool {
+	// Get Client, Context, CalcelFunc and err from connect method.
+	client, ctx, cancel, err := Database.Connect(ConnectionMongoDB)
+	if err != nil {
+		fmt.Println()
+		fmt.Println("Erro na resposta da função Connect - {Database/Mongo.go} que esta sendo chamada na Função CheckCluster - {Function/Cluster.go}")
+		fmt.Println()
+		panic(err)
+	}
+
+	// Free the resource when mainn dunction is  returned
+	defer Database.Close(client, ctx, cancel)
+	count, err := Database.CountElemento(client, ctx, dataBase, col, key, code)
+	if err != nil {
+		fmt.Println()
+		fmt.Println("Erro na resposta da função CountElemento - {Database/Mongo.go} que esta sendo chamada na Função CheckCluster - {Function/Cluster.go}")
+		fmt.Println()
+		panic(err)
+	}
+	if count > 0 {
+		return true
+	} else {
+		return false
+	}
+}
+
+func SaveClusterMongo(Cluster Model.Cluster, ConnectionMongoDB string, DataBaseMongo string, Collection string) (salvo bool, existente bool) {
+	confirm := CheckCluster(ConnectionMongoDB, DataBaseMongo, Collection, "hash", Cluster.Hash)
+	if confirm {
+		fmt.Println("Esse cluster ja existe nessa Collection: ", Collection)
+		return false, true
+	}
+
+	return SaveCluster(Cluster, ConnectionMongoDB, DataBaseMongo, Collection), false
+}
+
+func DeleteClusterMongo(hash string, ConnectionMongoDB string, DataBaseMongo string, Collection string) bool {
+	confirm := CheckCluster(ConnectionMongoDB, DataBaseMongo, Collection, "hash", hash)
+	if !confirm {
+		fmt.Println("Esse hash não existe nessa Collection, por isso não tem como excluir: ", Collection)
+		return false
+	}
+	return DeleteCluster(hash, ConnectionMongoDB, DataBaseMongo, Collection)
+}

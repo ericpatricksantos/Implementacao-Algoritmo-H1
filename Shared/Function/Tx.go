@@ -258,13 +258,13 @@ func CheckTxIndex(ConnectionMongoDB, dataBase, col, key string, code int) bool {
 	}
 }
 
-func SalveTxMongoDB(tx Model.Transaction, ConnectionMongoDB, DataBaseMongo, Collection string) bool {
+func SalveTxMongoDB(tx Model.Transaction, ConnectionMongoDB, DataBaseMongo, Collection string) (salvo bool, existente bool) {
 	confirm := CheckTx(ConnectionMongoDB, DataBaseMongo, Collection, "hash", tx.Hash)
 	if confirm {
 		fmt.Println("Esse tx ja existe nessa Collection: ", Collection)
-		return false
+		return false, true
 	}
-	return SaveTx(tx, ConnectionMongoDB, DataBaseMongo, Collection)
+	return SaveTx(tx, ConnectionMongoDB, DataBaseMongo, Collection), false
 }
 
 func DeleteTxMongo(hash string, ConnectionMongoDB string, DataBaseMongo string, Collection string) bool {
@@ -274,4 +274,29 @@ func DeleteTxMongo(hash string, ConnectionMongoDB string, DataBaseMongo string, 
 		return false
 	}
 	return DeleteTx(hash, ConnectionMongoDB, DataBaseMongo, Collection)
+}
+
+func MudancaStatusTx(tx Model.Transaction, ConnectionMongoDB, DataBaseTx, collectionOrigem, collectionDestino string) bool {
+
+	salvo, existente := SalveTxMongoDB(tx, ConnectionMongoDB, DataBaseTx, collectionDestino)
+
+	if !salvo && !existente {
+		fmt.Println("Não foi salvo com Sucesso a tx na collection ", collectionDestino)
+		return false
+	} else if !salvo && existente {
+		fmt.Println("Essa tx ja existente na collection ", collectionDestino)
+	} else {
+		fmt.Println("Salvo com sucesso a tx na collection ", collectionDestino)
+	}
+
+	deletado := DeleteTxMongo(tx.Hash, ConnectionMongoDB, DataBaseTx, collectionOrigem)
+
+	if !deletado {
+		fmt.Println("Hash: ", tx.Hash, " não foi deletado de ", collectionOrigem)
+		return false
+	} else {
+		fmt.Println("Deletado com sucesso a tx da collection", collectionOrigem)
+	}
+
+	return true
 }

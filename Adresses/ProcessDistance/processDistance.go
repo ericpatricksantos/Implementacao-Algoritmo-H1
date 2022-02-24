@@ -18,12 +18,12 @@ func main() {
 	RawAddr := "/rawaddr/"
 	MultiAddr := "/multiaddr?active="
 	EncerraExecucao := false
-	tempo := 3
-	tempoAux := 3
+	tempo := 6
+	tempoAux := 6
 	count := 0
 
 	for {
-		if EncerraExecucao {
+		if EncerraExecucao || tempo > 200 {
 			break
 		}
 		fmt.Println("Verificando se existem distancias em processing")

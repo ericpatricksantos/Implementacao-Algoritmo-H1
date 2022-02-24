@@ -8,6 +8,7 @@ import (
 	"main/Shared/Database"
 	"main/Shared/Model"
 	"strconv"
+	"time"
 )
 
 // Funções para Distancia
@@ -65,7 +66,7 @@ func SalveDistanciaMongoDB(analise Model.Distancia, ConnectionMongoDB, DataBaseM
 	confirm := CheckDistancia(ConnectionMongoDB, DataBaseMongo, Collection, "addressinput", analise.AddressInput)
 	if confirm {
 		fmt.Println("Esse addr ja existe nessa Collection: ", Collection)
-		return false, true, false
+		return false, false, true
 	}
 	salvo, erro = SaveDistancia(analise, ConnectionMongoDB, DataBaseMongo, Collection)
 	return salvo, erro, false
@@ -267,7 +268,7 @@ func GetAllDistancia(ConnectionMongoDB string, DataBaseMongo string, CollectionR
 func CreateDistance(ConnectionMongoDB,
 	DataBaseAddr, awaitingProcessingEnderecosEmAnalise, processedEnderecosEmAnalise,
 	awaitingProcessingAddr, processingAddr, processedAddr,
-	DataBaseDistancia, awaitingProcessingDistancia, processedDistancia string) bool {
+	DataBaseDistancia, awaitingProcessingDistancia, processedDistancia string, tempo int) bool {
 
 	count := 0
 
@@ -321,8 +322,10 @@ func CreateDistance(ConnectionMongoDB,
 			}
 			fmt.Println()
 		}
-		fmt.Println("---Foram salvas ", count, " na collection distancia--")
+		fmt.Println("---Foram salvas ", count, " na collection ", awaitingProcessingDistancia, "--")
 		fmt.Println("--------------------FIM-----------------------------")
+		fmt.Println("--------------- Dormindo ", tempo, " segundos ------")
+		time.Sleep(time.Second * time.Duration(tempo))
 	} else {
 		fmt.Println("Buscando Addr que são de outros Niveis")
 		fmt.Println()
@@ -370,7 +373,7 @@ func CreateDistance(ConnectionMongoDB,
 						fmt.Println("Faltam ", tamanhoAddrInputs-(index+1), " Endereços para encerrar essa lista")
 						fmt.Println("Falha ao salvar distancia, porque ja existe")
 						fmt.Println()
-						fmt.Println("---Foram salvas ", count, " na collection distancia--")
+						fmt.Println("---Foram salvas ", count, " na collection ", awaitingProcessingDistancia, "--")
 					} else if !confirm && !existente {
 						fmt.Println("Falha: Não foi salvo distancia")
 						return false
@@ -380,12 +383,12 @@ func CreateDistance(ConnectionMongoDB,
 						fmt.Println("index: ", index+1)
 						fmt.Println("Faltam ", tamanhoAddrInputs-(index+1), " Endereços para encerrar essa lista")
 						fmt.Println("Distancia salva com sucesso AddressInput: ", distancia.AddressInput)
-						fmt.Println("---Foram salvas ", count, " na collection distancia--")
+						fmt.Println("---Foram salvas ", count, " na collection ", awaitingProcessingDistancia, "--")
 
 					}
 					indiceTemp := []string{strconv.Itoa(index + 1)}
 					EscreverTexto(indiceTemp, "..\\Tcc\\IndiceInput.txt")
-					//time.Sleep(time.Second * time.Duration(1))
+					time.Sleep(time.Second * time.Duration(tempo))
 				}
 
 				mudou := MudancaStatusAddr_Processing_Processed(enderecos[0], ConnectionMongoDB, DataBaseAddr, processingAddr, processedAddr)
@@ -401,6 +404,8 @@ func CreateDistance(ConnectionMongoDB,
 
 			fmt.Println("---Foram salvas ", count, " na collection distancia--")
 			fmt.Println("--------------------FIM-----------------------------")
+			fmt.Println("--------------- Dormindo ", tempo, " segundos ------")
+			time.Sleep(time.Second * time.Duration(tempo))
 		}
 	}
 

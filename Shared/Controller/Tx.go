@@ -85,7 +85,8 @@ func GetTx(hash, urlAPI, rawTx string) Model.Transaction {
 }
 
 func SalveTxMongoDB(tx Model.Transaction, ConnectionMongoDB, DataBaseMongo, Collection string) bool {
-	return Function.SalveTxMongoDB(tx, ConnectionMongoDB, DataBaseMongo, Collection)
+	result, _ := Function.SalveTxMongoDB(tx, ConnectionMongoDB, DataBaseMongo, Collection)
+	return result
 }
 
 func DeleteTxMongo(hash string, ConnectionMongoDB string, DataBaseMongo string, Collection string) bool {

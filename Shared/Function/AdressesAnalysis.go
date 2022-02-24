@@ -260,7 +260,7 @@ func ProcessAdressesAnalysis(ConnectionMongoDB, DataBaseAnalise, CollectionAnali
 		addr := GetAddr(item.Address, urlAPI, RawAddr)
 
 		if len(addr.Address) > 0 && len(addr.Txs) > 0 {
-			fmt.Println("Salvando no MongoDB o Endereco")
+			fmt.Println("Salvando o Endereco no MongoDB ")
 			confirmSalve := SalveAddrMongoDB(addr, ConnectionMongoDB, DataBaseAddr, CollectionAddr)
 			if confirmSalve {
 				fmt.Println("Endereco Salvo ", item.Address)

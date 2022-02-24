@@ -4,26 +4,27 @@ import (
 	"fmt"
 	"main/Shared/Function"
 	"main/Shared/Service"
+	"time"
 )
 
 func main() {
 	countCreateClusters := 0
-	escolhaConexao := 0
+	escolhaConexao := 1
 	ConnectionMongoDB := []string{
 		"mongodb+srv://ericpatrick:9858epJusd@cluster0.cieqi.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
 		"mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb",
 	}
-	DataBaseTx := "blockchain"
-	DataBaseCluster := "blockchain"
+	DataBaseTx := "Txs"
+	DataBaseCluster := "Cluster"
 
-	ColTxProcessed := "Txprocessed"
+	ColTxProcessed := "processed"
 	ColTxProcessing := "processing"
 	ColTxAwaitingProcessing := "awaitingProcessing"
 
 	ColClusterProcessed := "processed"
 
 	EncerraExecucao := false
-
+	tempo := 1
 	for {
 		if EncerraExecucao {
 			break
@@ -45,25 +46,17 @@ func main() {
 				EncerraExecucao = true
 				break
 			}
-			fmt.Println("---------------------- Salvando Transação na Collection Processing -----------------------")
-			confirm := Function.SalveTxMongoDB(TxsAwaitingProcessing, ConnectionMongoDB[escolhaConexao], DataBaseTx, ColTxProcessing)
-			if confirm {
-				fmt.Println("---------------------- Transação salva com sucesso na Collection Processing --------------")
 
-				con := Function.DeleteTxMongo(TxsAwaitingProcessing.Hash, ConnectionMongoDB[escolhaConexao], DataBaseTx, ColTxAwaitingProcessing)
-				if con {
-					fmt.Println("---------------------- Transação deletada da Collection Awaiting Processing --------------")
-					fmt.Println("---------------------- Transação Pronta para ser Processada em Cluster -------------------")
-				} else {
-					fmt.Println("---------------------- Transação nao foi deletada da Collection Awaiting Processing ------")
-					EncerraExecucao = true
-					break
-				}
+			mudou := Function.MudancaStatusTx(TxsAwaitingProcessing, ConnectionMongoDB[escolhaConexao], DataBaseTx, ColTxAwaitingProcessing, ColTxProcessing)
+
+			if mudou {
+				fmt.Println("Mudança de status concluida ", ColTxAwaitingProcessing, " >> ", ColTxProcessing)
 			} else {
-				fmt.Println("---------------------- Transação nao foi salva na Collection Processing ------------------")
+				fmt.Println("Falha na mudança de status ", ColTxAwaitingProcessing, " >> ", ColTxProcessing)
 				EncerraExecucao = true
 				break
 			}
+
 			fmt.Println()
 		} else {
 			fmt.Println()
@@ -76,24 +69,20 @@ func main() {
 					countCreateClusters++
 					fmt.Println("---------------------- Clusters criados com Sucesso --------------------------------------")
 					fmt.Println("---------------------- Mudança de status: -processing- --> -processed- -------------------")
-					fmt.Println("---------------------- Salvando a transação na Collection processed ----------------------")
-					conf := Function.SalveTxMongoDB(TxsProcessing, ConnectionMongoDB[escolhaConexao], DataBaseTx, ColTxProcessed)
-					if conf {
-						fmt.Println("---------------------- Salvo com Sucesso -------------------------------------------------")
-						fmt.Println("---------------------- Deletando a transação da Collection processing --------------------")
-						con := Function.DeleteTxMongo(TxsProcessing.Hash, ConnectionMongoDB[escolhaConexao], DataBaseTx, ColTxProcessing)
-						if con {
-							fmt.Println("---------------------- Deletado com sucesso ----------------------------------------------")
-							fmt.Println("---------------------- Mudanda de Status realizada com Sucesso ---------------------------")
-						} else {
-							fmt.Println("---------------------- Nao foi deletado com sucesso --------------------------------------")
-							EncerraExecucao = true
-						}
+					mudou := Function.MudancaStatusTx(TxsProcessing, ConnectionMongoDB[escolhaConexao], DataBaseTx, ColTxProcessing, ColTxProcessed)
+
+					if mudou {
+						fmt.Println("Mudança de status concluida ", ColTxProcessing, " >> ", ColTxProcessed)
 					} else {
-						fmt.Println("---------------------- Não foi salvo com sucesso -----------------------------------------")
+						fmt.Println("Falha na mudança de status ", ColTxProcessing, " >> ", ColTxProcessed)
 						EncerraExecucao = true
+						break
 					}
+
 					fmt.Println()
+					break
+				} else if !FinalizaExecucao {
+					fmt.Println("Clusters nao foram criados")
 					break
 				} else {
 					fmt.Println("---------------------- Clusters nao foram criados ----------------------------------------")
@@ -106,5 +95,7 @@ func main() {
 			fmt.Println("****************************** FIM *******************************************************")
 			fmt.Println("*********************** Clusters Criados ", countCreateClusters, " ***********************************************")
 		}
+		fmt.Println("Dormindo ", tempo, " segundos")
+		time.Sleep(time.Second * time.Duration(tempo))
 	}
 }
