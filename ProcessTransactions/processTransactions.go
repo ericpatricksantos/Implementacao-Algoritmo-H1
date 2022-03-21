@@ -16,7 +16,7 @@ var FileLogBlock string = Controller.GetConfig().FileLog[1]
 
 func main() {
 	contadorTxsSalvas := 0
-	tempo := 3
+	tempo := 1
 
 	ConnectionMongoDB := "mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb"
 	confirmContinue := false

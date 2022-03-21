@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
-	"main/Shared/Controller"
+	"main/Shared/Service"
 )
 
 func main() {
-	execucoes := 1
-	i := 0
+	NoCheckNextAddr := true
+	IgnoraCluster := 100
+
+	encerraExecucao := false
 	escolhaConexao := 1
 	ConnectionMongoDB := []string{
 		"mongodb+srv://ericpatrick:9858epJusd@cluster0.cieqi.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
@@ -16,22 +18,26 @@ func main() {
 	DataBaseCluster := "Cluster"
 	ColClusterProcessed := "processed"
 	for {
-		if i >= execucoes {
+
+		if encerraExecucao {
 			break
 		}
 		fmt.Println()
 		fmt.Println("Aplicando Algoritmo H1")
 
-		confirm := Controller.H1(ConnectionMongoDB[escolhaConexao], DataBaseCluster, ColClusterProcessed)
+		confirm, encerra, executeAll := Service.H1(ConnectionMongoDB[escolhaConexao], DataBaseCluster, ColClusterProcessed, IgnoraCluster, NoCheckNextAddr)
 
-		if confirm {
+		if confirm && executeAll {
 			fmt.Println("Execução finalizada com Sucesso")
-		} else {
+			encerraExecucao = executeAll
+		} else if !confirm && encerra {
+			encerraExecucao = encerra
 			fmt.Println("Execução finalizada com erro")
+		} else if !confirm && !encerra {
+			fmt.Println("Nao encerra a execução")
+			fmt.Println("Será executado o algoritmo novamente para executar nos dados atualizados")
 		}
 		fmt.Println()
-
-		i++
 
 	}
 }

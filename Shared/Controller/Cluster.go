@@ -10,6 +10,7 @@ func CreateCluster(ConnectionMongoDB, DataBaseTx, CollectionTx, DataBaseCluster,
 		CollectionCluster)
 }
 
-func H1(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string) bool {
-	return Service.H1(ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
+func H1(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string, IgnoraCluster int, NoCheckNextAddr bool) bool {
+	return false
+	//return Service.H1(ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados, IgnoraCluster, NoCheckNextAddr)
 }

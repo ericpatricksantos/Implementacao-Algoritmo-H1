@@ -42,7 +42,7 @@ func main() {
 		} else if !confirmCluster && !FinalizaExecucao {
 			fmt.Println("Cluster foi criado anteriormente")
 		} else {
-			fmt.Println("Erro: Finalizando Execução")
+			fmt.Println("Finalizando Execução")
 			encerraExecucao = FinalizaExecucao
 		}
 		fmt.Println("****************************** FIM *******************************************************")

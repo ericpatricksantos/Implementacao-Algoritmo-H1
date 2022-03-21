@@ -48,7 +48,9 @@ func Connect(uri string) (*mongo.Client, context.Context,
 	// ctx will be used to set deadline for process, here
 	// deadline will of 30 seconds.
 	ctx, cancel := context.WithTimeout(context.Background(),
-		30*time.Second)
+		300*time.Second)
+
+	//ctx := context.Background()
 
 	// mongo.Connect return mongo.Client method
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
@@ -109,7 +111,44 @@ func Query(client *mongo.Client, ctx context.Context, dataBase, col string, quer
 	// collection has an method Find,
 	// that returns a mongo.cursor
 	// based on query and field.
-	result, err = collection.Find(ctx, query, options.Find().SetProjection(field))
+	//result, err = collection.Find(ctx, query, options.Find().SetProjection(field))
+	opcao := options.Find()
+	opcao.SetLimit(100)
+	opcao.SetProjection(field)
+	result, err = collection.Find(ctx, query, opcao)
+	return result, err
+}
+
+func QueryLimit(client *mongo.Client, ctx context.Context, dataBase, col string, limit int64, query, field interface{}) (result *mongo.Cursor, err error) {
+
+	// select database and collection.
+	collection := client.Database(dataBase).Collection(col)
+
+	// collection has an method Find,
+	// that returns a mongo.cursor
+	// based on query and field.
+	//result, err = collection.Find(ctx, query, options.Find().SetProjection(field))
+	opcao := options.Find()
+	opcao.SetLimit(limit)
+	opcao.SetProjection(field)
+	result, err = collection.Find(ctx, query, opcao)
+	return result, err
+}
+
+func QueryLimitOffset(client *mongo.Client, ctx context.Context, dataBase, col string, limit int64, offset int64, query, field interface{}) (result *mongo.Cursor, err error) {
+
+	// select database and collection.
+	collection := client.Database(dataBase).Collection(col)
+
+	// collection has an method Find,
+	// that returns a mongo.cursor
+	// based on query and field.
+	//result, err = collection.Find(ctx, query, options.Find().SetProjection(field))
+	opcao := options.Find()
+	opcao.SetLimit(limit)
+	opcao.SetSkip(offset)
+	opcao.SetProjection(field)
+	result, err = collection.Find(ctx, query, opcao)
 	return result, err
 }
 

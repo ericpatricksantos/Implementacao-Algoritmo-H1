@@ -3,6 +3,7 @@ package Function
 import (
 	"bufio"
 	"fmt"
+	"main/Shared/Model"
 	"os"
 	"strconv"
 )
@@ -117,4 +118,36 @@ func GetIndiceLogIndice(nomeArquivoIndice string) int {
 	}
 
 	return indiceInicial
+}
+
+func BuscaDoisIndices(txtIndice1, txtIndice2 string) (indice1, indice2 int) {
+	indice1 = GetIndiceLogIndice(txtIndice1)
+	indice2 = GetIndiceLogIndice(txtIndice2)
+
+	return indice1, indice2
+}
+
+func LimpaTxt(txt string) {
+	EscreverTexto([]string{}, txt)
+}
+
+func IncrementaIndice(valorAnterior int, txt string) {
+	temp := []string{strconv.Itoa(valorAnterior + 1)}
+	EscreverTexto(temp, txt)
+}
+
+func DefineIndice(valorAtual int, txt string) {
+	temp := []string{strconv.Itoa(valorAtual)}
+	EscreverTexto(temp, txt)
+}
+
+func SalvarListaCluster(clusters []Model.Cluster) (sucesso bool) {
+	hashesParaDeletar := GetHash(clusters)
+	errou := EscreverTexto(hashesParaDeletar, "hashParaDeletar.txt")
+	if errou != nil {
+		fmt.Println("Erro em escrever os hash para deletar")
+		return false
+	}
+
+	return true
 }
