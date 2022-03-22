@@ -9,7 +9,7 @@ func main() {
 	ConnectionMongoDB := "mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb"
 
 	DataBaseAddr := "Adresses"
-	// Collection do nivel dos endereços do Faroa
+	// Collection do nivel dos endereços do Farao
 	awaitingProcessingEnderecosEmAnalise := "awaitingProcessingEnderecosEmAnalise"
 	processedEnderecosEmAnalise := "processedEnderecosEmAnalise"
 	// Collection de outros niveis

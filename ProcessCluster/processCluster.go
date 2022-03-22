@@ -25,7 +25,7 @@ func main() {
 		fmt.Println()
 		fmt.Println("Aplicando Algoritmo H1")
 
-		confirm, encerra, executeAll := Service.H1(ConnectionMongoDB[escolhaConexao], DataBaseCluster, ColClusterProcessed, IgnoraCluster, NoCheckNextAddr)
+		confirm, encerra, executeAll := Service.Teste_H1(ConnectionMongoDB[escolhaConexao], DataBaseCluster, ColClusterProcessed, IgnoraCluster, NoCheckNextAddr)
 
 		if confirm && executeAll {
 			fmt.Println("Execução finalizada com Sucesso")

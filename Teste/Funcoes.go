@@ -6,25 +6,29 @@ import (
 )
 
 /* Usado para testar funções*/
-func mnnain() {
+func main() {
 	//usar esse endereço para agrupar o resto
-	j := Function2.GetClusterByIdenficador("37PkQ921NSAQs6b4rxAFrEg9qnSpiY1Y7d",
+	//j := Function2.GetClusterByIdenficador("37PkQ921NSAQs6b4rxAFrEg9qnSpiY1Y7d",
+	//	"mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb",
+	//	"teste", "processed")
+	//
+	//for index, item := range j.Input {
+	//	if item == "1JawWE56G5NmnB5iuYbFikbdETs88Fxkwo" {
+	//		fmt.Println(item)
+	//		fmt.Println("Posicao: ", index)
+	//		fmt.Println("achou")
+	//	}
+	//}
+
+	resultSearch := Function2.SearchClustersLimit(100000000000000, "1JawWE56G5NmnB5iuYbFikbdETs88Fxkwo",
 		"mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb",
 		"teste", "processed")
-
-	for index, item := range j.Input {
-		if item == "1JawWE56G5NmnB5iuYbFikbdETs88Fxkwo" {
-			fmt.Println("Posicao: ", index)
-			fmt.Println("achou")
-		}
+	tam := len(resultSearch)
+	fmt.Println(tam)
+	if tam == 1 {
+		fmt.Println(resultSearch[0].Hash)
+		fmt.Println(len(resultSearch[0].Input))
 	}
-
-	//resultSearch := Function2.SearchClustersLimit( 100000000000000 , "1JawWE56G5NmnB5iuYbFikbdETs88Fxkwo",
-	//"mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb",
-	//"teste", "processed")
-	//
-	//fmt.Println(len(resultSearch))
-
 }
 
 func TesteInserir() {

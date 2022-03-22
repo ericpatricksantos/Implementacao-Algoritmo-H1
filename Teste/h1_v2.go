@@ -25,9 +25,9 @@ func main() {
 		fmt.Println("Aplicando Algoritmo H1")
 
 		confirm, erro, executeAll, pausaExecucao :=
-			Service.H1_V2(ConnectionMongoDB[escolhaConexao],
+			Service.H1(ConnectionMongoDB[escolhaConexao],
 				DataBaseCluster, ColClusterProcessed,
-				IgnoraCluster, true, 30000)
+				IgnoraCluster, true, 2000)
 
 		if pausaExecucao {
 			encerraExecucao = pausaExecucao

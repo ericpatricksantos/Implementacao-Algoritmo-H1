@@ -13,191 +13,7 @@ import (
 	Implementar o algoritmo H1
 */
 
-func H1(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string, IgnoraCluster int, NoCheckNextAddr bool) (confirmH1, erro, executeAll bool) {
-	valoresHashParaDeletar, _ := Function2.LerTexto("hashParaDeletar.txt")
-
-	if len(valoresHashParaDeletar) > 0 {
-		DeleteConfirm := DeleteListCluster(valoresHashParaDeletar, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
-
-		if !DeleteConfirm {
-			fmt.Println("Não foram deletados todos os clusters")
-			return false, false, false
-		} else {
-			fmt.Println("Deletado")
-			fmt.Println("limpa o hashParaDeletar")
-			Function2.EscreverTexto([]string{}, "hashParaDeletar.txt")
-
-		}
-	} else {
-
-		fmt.Println("Buscando todos os clusters")
-		clusters := Function2.GetAllCluster(ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
-		if len(clusters) < 1 {
-			fmt.Println("Não tem nenhum cluster")
-			return false, true, false
-		}
-		indiceInicial := Function2.GetIndiceLogIndice("IndiceCluster.txt")
-		indiceInicialInput := Function2.GetIndiceLogIndice("IndiceInputCluster.txt")
-		tamanhoCluster := len(clusters)
-
-		if tamanhoCluster < indiceInicial {
-			indiceInicial = 0
-		}
-
-		for index_cluster := indiceInicial; index_cluster < tamanhoCluster; index_cluster++ {
-
-			HashAtual := clusters[index_cluster].Hash
-			tamanhoInput := len(clusters[index_cluster].Input)
-			listaInput := clusters[index_cluster].Input
-
-			if tamanhoInput < indiceInicialInput {
-				indiceInicialInput = 0
-			}
-
-			if tamanhoInput < IgnoraCluster {
-				for index_input := indiceInicialInput; index_input < tamanhoInput; index_input++ {
-
-					item2 := clusters[index_cluster].Input[index_input]
-
-					fmt.Println("Quantidade de Cluster Restantes: ", tamanhoCluster)
-					fmt.Println("Indice do Cluster: ", index_cluster)
-					fmt.Println("Tamanho da lista de input: ", tamanhoInput)
-					fmt.Println("Indice do input: ", index_input)
-					fmt.Println("Buscando o endereço ", item2, " na lista de inputs de outro cluster")
-					resultSearch := SearchAddr(item2, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
-					fmt.Println()
-					quantidadeCusterEncontrados := len(resultSearch)
-					if quantidadeCusterEncontrados > 1 {
-						fmt.Println("Encontrado o endereço ", item2, "em uma lista de inputs de um cluster")
-						fmt.Println("Quantidade de Clusters Encontrados: ", quantidadeCusterEncontrados)
-						//fmt.Println("Verificando se o endereço(hash)", clusters[index_cluster].Hash ,"ainda existe")
-						//existeCluster := Function2.CheckCluster(ConnectionMongoDB,DataBaseMongo, CollectionRecuperaDados, "hash", clusters[index_cluster].Hash)
-						existeCluster := true
-						if existeCluster {
-							fmt.Println("Removendo o cluster: ", HashAtual)
-							result := Function2.RemoveCluster(HashAtual, resultSearch)
-							fmt.Println("Removido com sucesso o cluster: ", HashAtual)
-							hashesParaDeletar := Function2.GetHash(result)
-							errou := Function2.EscreverTexto(hashesParaDeletar, "hashParaDeletar.txt")
-							if errou != nil {
-								fmt.Println("Erro em escrever os hash para deletar")
-								return false, true, false
-							}
-							//valores, _ := Function2.RemoveDuplicados(UnionCluster(result))
-							//Remove os duplicados e o item pesquisado
-							fmt.Println("Removendo os itens duplicados")
-							listaResultante, _ := Function2.RemoveItem(UnionCluster(result), item2)
-							fmt.Println("Removido com sucesso os itens duplicados")
-							fmt.Println("Removendo os duplicados de listaResultante em comparação com o Input")
-							clusterResultante, tamClusterResultante := Function2.EliminaElem(listaResultante, listaInput)
-							fmt.Println("Remoção concluida")
-							fmt.Println("Tamanho do cluster resultante: ", tamClusterResultante)
-							fmt.Println("Adicionando a lista no Cluster: ", HashAtual)
-							var SaveConfirm bool
-							var erroAddAll bool
-							if tamClusterResultante < 301 {
-								SaveConfirm, erroAddAll, _ = Function2.AddListToList(HashAtual, clusterResultante, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
-							} else {
-								SaveConfirm, erroAddAll = Function2.AddAll(HashAtual, clusterResultante, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
-							}
-
-							if SaveConfirm {
-
-								DeleteConfirm := DeleteListCluster(hashesParaDeletar, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
-
-								if !DeleteConfirm {
-									fmt.Println("Não foram deletados todos os clusters")
-									return false, false, false
-								}
-								// limpa o hashParaDeletar
-								Function2.EscreverTexto([]string{}, "hashParaDeletar.txt")
-
-								temp := []string{strconv.Itoa(index_input + 1)}
-								Function2.EscreverTexto(temp, "IndiceInputCluster.txt")
-								fmt.Println()
-								fmt.Println("Cluster Resultante Atualizado")
-								fmt.Println()
-
-								//if(NoCheckNextAddr){
-								//	fmt.Println("Não verifica os próximos endereços da lista de inputs")
-								//	fmt.Println("Pula para o próximo cluster")
-								//	break
-								//}
-
-								return true, false, false
-							} else if !SaveConfirm && erroAddAll {
-								fmt.Println("Cluster Resultante não foi Atualizado")
-								// limpa o hashParaDeletar
-								Function2.EscreverTexto([]string{}, "hashParaDeletar.txt")
-
-								return false, true, false
-							} else {
-								if tamClusterResultante != 0 {
-									fmt.Println("Cluster Resultante não foi Atualizado")
-									temp1 := []string{strconv.Itoa(index_input + 1)}
-									Function2.EscreverTexto(temp1, "IndiceInputCluster.txt")
-
-									fmt.Println("Indice do input atualizado ", index_input+1)
-									return false, false, false
-								} else {
-									DeleteConfirm := DeleteListCluster(valoresHashParaDeletar, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
-
-									if !DeleteConfirm {
-										fmt.Println("Não foram deletados todos os clusters")
-										return false, false, false
-									} else {
-										fmt.Println("Deletado")
-										fmt.Println("limpa o hashParaDeletar")
-										Function2.EscreverTexto([]string{}, "hashParaDeletar.txt")
-
-									}
-								}
-
-							}
-						} else {
-							temp1 := []string{strconv.Itoa(0)}
-							Function2.EscreverTexto(temp1, "IndiceInputCluster.txt")
-							fmt.Println()
-
-							temp := []string{strconv.Itoa(index_cluster + 1)}
-							Function2.EscreverTexto(temp, "IndiceCluster.txt")
-
-							fmt.Println(" O endereço(hash) ", clusters[index_cluster].Hash, " nao existe")
-							return false, false, false
-						}
-					} else {
-						fmt.Println("O endereço ", item2, " não foi encontrado na lista de inputs de outro cluster")
-						fmt.Println("Indice do input atualizado")
-						temp := []string{strconv.Itoa(index_input + 1)}
-						Function2.EscreverTexto(temp, "IndiceInputCluster.txt")
-						fmt.Println()
-					}
-				}
-				temp := []string{strconv.Itoa(0)}
-				Function2.EscreverTexto(temp, "IndiceInputCluster.txt")
-				indiceInicialInput = 0
-			} else {
-				temp := []string{strconv.Itoa(0)}
-				Function2.EscreverTexto(temp, "IndiceInputCluster.txt")
-				indiceInicialInput = 0
-				fmt.Println(" Cluster ignorado: ", HashAtual)
-				fmt.Println("Tamanho desse cluster: ", tamanhoInput)
-			}
-			fmt.Println()
-			fmt.Println("Atualizando Indice  para ", index_cluster+1)
-			temp := []string{strconv.Itoa(index_cluster + 1)}
-			Function2.EscreverTexto(temp, "IndiceCluster.txt")
-			fmt.Println()
-			tamanhoCluster = tamanhoCluster - 1
-		}
-		temp := []string{strconv.Itoa(0)}
-		Function2.EscreverTexto(temp, "IndiceCluster.txt")
-		return true, false, false
-	}
-	return true, false, false
-}
-
-func H1_V2(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string, IgnoraCluster int, removeClusterValorDefinido bool, valorDefinido int) (confirmH1, erro, executeAll, pausaExecucao bool) {
+func H1(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string, IgnoraCluster int, removeClusterValorDefinido bool, valorDefinido int) (confirmH1, erro, executeAll, pausaExecucao bool) {
 	valoresHashParaDeletar, _ := Function2.LerTexto("hashParaDeletar.txt")
 
 	if len(valoresHashParaDeletar) > 0 {
@@ -213,7 +29,6 @@ func H1_V2(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDad
 		var offset int64 = 19952
 		fmt.Println("Buscando todos os clusters")
 		clusters := Function2.GetAllClusterLimitOffset(limitClusters, offset, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
-		//clusters := Function2.GetClustersByIdentificador(  "bc1q8kmtzc0a43w0cjrzwzwqsa9frxaseyzcg6mq3d" , ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
 		if len(clusters) < 1 {
 			fmt.Println()
 			fmt.Println("Não tem nenhum cluster")
@@ -222,8 +37,7 @@ func H1_V2(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDad
 		indiceInicialCluster, indiceInicialInput :=
 			Function2.BuscaDoisIndices("IndiceCluster.txt",
 				"IndiceInputCluster.txt")
-		//indiceInicialCluster := 0
-		//indiceInicialInput := Function2.GetIndiceLogIndice("IndiceInputCluster.txt")
+
 		tamanhoCluster := len(clusters)
 
 		if (tamanhoCluster < indiceInicialCluster) && (int(limitClusters) == tamanhoCluster) {
@@ -258,10 +72,7 @@ func H1_V2(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDad
 					fmt.Println("Buscando o endereço ", endereco, " na lista de inputs de outro cluster")
 					resultSearch := Function2.SearchClustersLimit(28, endereco, ConnectionMongoDB,
 						DataBaseMongo, CollectionRecuperaDados)
-					//fmt.Println("Buscando o endereço ", ""," na lista de inputs de outro cluster")
-					//resultSearch := Function2.SearchClustersLimit( 4 ,
-					//	endereco , ConnectionMongoDB,
-					//		DataBaseMongo, CollectionRecuperaDados)
+
 					quantidadeCusterEncontrados := len(resultSearch)
 					fmt.Println()
 					if quantidadeCusterEncontrados == 2 {
@@ -764,4 +575,188 @@ func CreateClustersAddr(ConnectionMongoDB, DataBaseCluster, CollectionCluster,
 		fmt.Println("Valores do Hash e inputs do Cluster vazios")
 		return false, true
 	}
+}
+
+func Teste_H1(ConnectionMongoDB string, DataBaseMongo string, CollectionRecuperaDados string, IgnoraCluster int, NoCheckNextAddr bool) (confirmH1, erro, executeAll bool) {
+	valoresHashParaDeletar, _ := Function2.LerTexto("hashParaDeletar.txt")
+
+	if len(valoresHashParaDeletar) > 0 {
+		DeleteConfirm := DeleteListCluster(valoresHashParaDeletar, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
+
+		if !DeleteConfirm {
+			fmt.Println("Não foram deletados todos os clusters")
+			return false, false, false
+		} else {
+			fmt.Println("Deletado")
+			fmt.Println("limpa o hashParaDeletar")
+			Function2.EscreverTexto([]string{}, "hashParaDeletar.txt")
+
+		}
+	} else {
+
+		fmt.Println("Buscando todos os clusters")
+		clusters := Function2.GetAllCluster(ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
+		if len(clusters) < 1 {
+			fmt.Println("Não tem nenhum cluster")
+			return false, true, false
+		}
+		indiceInicial := Function2.GetIndiceLogIndice("IndiceCluster.txt")
+		indiceInicialInput := Function2.GetIndiceLogIndice("IndiceInputCluster.txt")
+		tamanhoCluster := len(clusters)
+
+		if tamanhoCluster < indiceInicial {
+			indiceInicial = 0
+		}
+
+		for index_cluster := indiceInicial; index_cluster < tamanhoCluster; index_cluster++ {
+
+			HashAtual := clusters[index_cluster].Hash
+			tamanhoInput := len(clusters[index_cluster].Input)
+			listaInput := clusters[index_cluster].Input
+
+			if tamanhoInput < indiceInicialInput {
+				indiceInicialInput = 0
+			}
+
+			if tamanhoInput < IgnoraCluster {
+				for index_input := indiceInicialInput; index_input < tamanhoInput; index_input++ {
+
+					item2 := clusters[index_cluster].Input[index_input]
+
+					fmt.Println("Quantidade de Cluster Restantes: ", tamanhoCluster)
+					fmt.Println("Indice do Cluster: ", index_cluster)
+					fmt.Println("Tamanho da lista de input: ", tamanhoInput)
+					fmt.Println("Indice do input: ", index_input)
+					fmt.Println("Buscando o endereço ", item2, " na lista de inputs de outro cluster")
+					resultSearch := SearchAddr(item2, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
+					fmt.Println()
+					quantidadeCusterEncontrados := len(resultSearch)
+					if quantidadeCusterEncontrados > 1 {
+						fmt.Println("Encontrado o endereço ", item2, "em uma lista de inputs de um cluster")
+						fmt.Println("Quantidade de Clusters Encontrados: ", quantidadeCusterEncontrados)
+						//fmt.Println("Verificando se o endereço(hash)", clusters[index_cluster].Hash ,"ainda existe")
+						//existeCluster := Function2.CheckCluster(ConnectionMongoDB,DataBaseMongo, CollectionRecuperaDados, "hash", clusters[index_cluster].Hash)
+						existeCluster := true
+						if existeCluster {
+							fmt.Println("Removendo o cluster: ", HashAtual)
+							result := Function2.RemoveCluster(HashAtual, resultSearch)
+							fmt.Println("Removido com sucesso o cluster: ", HashAtual)
+							hashesParaDeletar := Function2.GetHash(result)
+							errou := Function2.EscreverTexto(hashesParaDeletar, "hashParaDeletar.txt")
+							if errou != nil {
+								fmt.Println("Erro em escrever os hash para deletar")
+								return false, true, false
+							}
+							//valores, _ := Function2.RemoveDuplicados(UnionCluster(result))
+							//Remove os duplicados e o item pesquisado
+							fmt.Println("Removendo os itens duplicados")
+							listaResultante, _ := Function2.RemoveItem(UnionCluster(result), item2)
+							fmt.Println("Removido com sucesso os itens duplicados")
+							fmt.Println("Removendo os duplicados de listaResultante em comparação com o Input")
+							clusterResultante, tamClusterResultante := Function2.EliminaElem(listaResultante, listaInput)
+							fmt.Println("Remoção concluida")
+							fmt.Println("Tamanho do cluster resultante: ", tamClusterResultante)
+							fmt.Println("Adicionando a lista no Cluster: ", HashAtual)
+							var SaveConfirm bool
+							var erroAddAll bool
+							if tamClusterResultante < 301 {
+								SaveConfirm, erroAddAll, _ = Function2.AddListToList(HashAtual, clusterResultante, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
+							} else {
+								SaveConfirm, erroAddAll = Function2.AddAll(HashAtual, clusterResultante, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
+							}
+
+							if SaveConfirm {
+
+								DeleteConfirm := DeleteListCluster(hashesParaDeletar, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
+
+								if !DeleteConfirm {
+									fmt.Println("Não foram deletados todos os clusters")
+									return false, false, false
+								}
+								// limpa o hashParaDeletar
+								Function2.EscreverTexto([]string{}, "hashParaDeletar.txt")
+
+								temp := []string{strconv.Itoa(index_input + 1)}
+								Function2.EscreverTexto(temp, "IndiceInputCluster.txt")
+								fmt.Println()
+								fmt.Println("Cluster Resultante Atualizado")
+								fmt.Println()
+
+								//if(NoCheckNextAddr){
+								//	fmt.Println("Não verifica os próximos endereços da lista de inputs")
+								//	fmt.Println("Pula para o próximo cluster")
+								//	break
+								//}
+
+								return true, false, false
+							} else if !SaveConfirm && erroAddAll {
+								fmt.Println("Cluster Resultante não foi Atualizado")
+								// limpa o hashParaDeletar
+								Function2.EscreverTexto([]string{}, "hashParaDeletar.txt")
+
+								return false, true, false
+							} else {
+								if tamClusterResultante != 0 {
+									fmt.Println("Cluster Resultante não foi Atualizado")
+									temp1 := []string{strconv.Itoa(index_input + 1)}
+									Function2.EscreverTexto(temp1, "IndiceInputCluster.txt")
+
+									fmt.Println("Indice do input atualizado ", index_input+1)
+									return false, false, false
+								} else {
+									DeleteConfirm := DeleteListCluster(valoresHashParaDeletar, ConnectionMongoDB, DataBaseMongo, CollectionRecuperaDados)
+
+									if !DeleteConfirm {
+										fmt.Println("Não foram deletados todos os clusters")
+										return false, false, false
+									} else {
+										fmt.Println("Deletado")
+										fmt.Println("limpa o hashParaDeletar")
+										Function2.EscreverTexto([]string{}, "hashParaDeletar.txt")
+
+									}
+								}
+
+							}
+						} else {
+							temp1 := []string{strconv.Itoa(0)}
+							Function2.EscreverTexto(temp1, "IndiceInputCluster.txt")
+							fmt.Println()
+
+							temp := []string{strconv.Itoa(index_cluster + 1)}
+							Function2.EscreverTexto(temp, "IndiceCluster.txt")
+
+							fmt.Println(" O endereço(hash) ", clusters[index_cluster].Hash, " nao existe")
+							return false, false, false
+						}
+					} else {
+						fmt.Println("O endereço ", item2, " não foi encontrado na lista de inputs de outro cluster")
+						fmt.Println("Indice do input atualizado")
+						temp := []string{strconv.Itoa(index_input + 1)}
+						Function2.EscreverTexto(temp, "IndiceInputCluster.txt")
+						fmt.Println()
+					}
+				}
+				temp := []string{strconv.Itoa(0)}
+				Function2.EscreverTexto(temp, "IndiceInputCluster.txt")
+				indiceInicialInput = 0
+			} else {
+				temp := []string{strconv.Itoa(0)}
+				Function2.EscreverTexto(temp, "IndiceInputCluster.txt")
+				indiceInicialInput = 0
+				fmt.Println(" Cluster ignorado: ", HashAtual)
+				fmt.Println("Tamanho desse cluster: ", tamanhoInput)
+			}
+			fmt.Println()
+			fmt.Println("Atualizando Indice  para ", index_cluster+1)
+			temp := []string{strconv.Itoa(index_cluster + 1)}
+			Function2.EscreverTexto(temp, "IndiceCluster.txt")
+			fmt.Println()
+			tamanhoCluster = tamanhoCluster - 1
+		}
+		temp := []string{strconv.Itoa(0)}
+		Function2.EscreverTexto(temp, "IndiceCluster.txt")
+		return true, false, false
+	}
+	return true, false, false
 }

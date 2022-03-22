@@ -6,8 +6,7 @@ import (
 )
 
 func a() {
-	NoCheckNextAddr := false
-	IgnoraCluster := 100
+	IgnoraCluster := 100000
 
 	encerraExecucao := false
 	escolhaConexao := 1
@@ -22,20 +21,29 @@ func a() {
 		if encerraExecucao {
 			break
 		}
-		fmt.Println()
+
 		fmt.Println("Aplicando Algoritmo H1")
 
-		confirm, encerra, executeAll := Service.H1(ConnectionMongoDB[escolhaConexao], DataBaseCluster, ColClusterProcessed, IgnoraCluster, NoCheckNextAddr)
+		confirm, erro, executeAll, pausaExecucao :=
+			Service.H1(ConnectionMongoDB[escolhaConexao],
+				DataBaseCluster, ColClusterProcessed,
+				IgnoraCluster, true, 2000)
 
-		if confirm && executeAll {
+		if pausaExecucao {
+			encerraExecucao = pausaExecucao
+			fmt.Println("Pausa Execucao")
+		} else if confirm && executeAll {
 			fmt.Println("Execução finalizada com Sucesso")
 			encerraExecucao = executeAll
-		} else if !confirm && encerra {
-			encerraExecucao = encerra
-			fmt.Println("Execução finalizada com erro")
-		} else if !confirm && !encerra {
+		} else if !confirm && erro {
+			encerraExecucao = erro
+			fmt.Println("Execução com erro")
+		} else if !confirm && !erro && !pausaExecucao {
 			fmt.Println("Nao encerra a execução")
-			fmt.Println("Será executado o algoritmo novamente para executar nos dados atualizados")
+			fmt.Println("Será executado o algoritmo novamente" +
+				" para executar nos dados atualizados")
+		} else if confirm {
+			fmt.Println("Continua execucao")
 		}
 		fmt.Println()
 
